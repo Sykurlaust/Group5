@@ -30,7 +30,7 @@ const Contact = () => {
 			
 			<main className="mx-auto max-w-6xl px-6 py-16">
 				<div className="grid gap-8 lg:grid-cols-2">
-					<div className="relative overflow-hidden rounded-3xl bg-[#2dbe8b] p-8 text-white shadow-lg">
+					<div className="relative overflow-hidden rounded-3xl bg-[#46a796] p-8 text-white shadow-lg">
 						<div className="relative z-10 space-y-6">
 							<div>
 								<h2 className="text-2xl font-bold">Contact Information</h2>
@@ -100,7 +100,7 @@ const Contact = () => {
 										value={formData.firstName}
 										onChange={handleChange}
 										placeholder="John"
-										className="w-full border-b border-gray-300 px-0 py-2 text-sm focus:border-[#2dbe8b] focus:outline-none"
+										className="w-full border-b border-gray-300 px-0 py-2 text-sm focus:border-[#46a796] focus:outline-none"
 										required
 									/>
 								</div>
@@ -114,7 +114,7 @@ const Contact = () => {
 										value={formData.lastName}
 										onChange={handleChange}
 										placeholder="Doe"
-										className="w-full border-b border-gray-300 px-0 py-2 text-sm focus:border-[#2dbe8b] focus:outline-none"
+										className="w-full border-b border-gray-300 px-0 py-2 text-sm focus:border-[#46a796] focus:outline-none"
 										required
 									/>
 								</div>
@@ -132,7 +132,7 @@ const Contact = () => {
 										value={formData.email}
 										onChange={handleChange}
 										placeholder="example@email.com"
-										className="w-full border-b border-gray-300 px-0 py-2 text-sm focus:border-[#2dbe8b] focus:outline-none"
+										className="w-full border-b border-gray-300 px-0 py-2 text-sm focus:border-[#46a796] focus:outline-none"
 										required
 									/>
 								</div>
@@ -146,7 +146,7 @@ const Contact = () => {
 										value={formData.phone}
 										onChange={handleChange}
 										placeholder="+1 012 3456 789"
-										className="w-full border-b border-gray-300 px-0 py-2 text-sm focus:border-[#2dbe8b] focus:outline-none"
+										className="w-full border-b border-gray-300 px-0 py-2 text-sm focus:border-[#46a796] focus:outline-none"
 										required
 									/>
 								</div>
@@ -163,7 +163,7 @@ const Contact = () => {
 											value="general"
 											checked={formData.subject === 'general'}
 											onChange={handleChange}
-											className="h-4 w-4 text-[#2dbe8b]"
+											className="h-4 w-4 text-[#46a796]"
 										/>
 										<span className="text-sm">General Inquiry</span>
 									</label>
@@ -174,7 +174,7 @@ const Contact = () => {
 											value="rental"
 											checked={formData.subject === 'rental'}
 											onChange={handleChange}
-											className="h-4 w-4 text-[#2dbe8b]"
+											className="h-4 w-4 text-[#46a796]"
 										/>
 										<span className="text-sm">Rental Inquiry</span>
 									</label>
@@ -185,7 +185,7 @@ const Contact = () => {
 											value="support"
 											checked={formData.subject === 'support'}
 											onChange={handleChange}
-											className="h-4 w-4 text-[#2dbe8b]"
+											className="h-4 w-4 text-[#46a796]"
 										/>
 										<span className="text-sm">Support</span>
 									</label>
@@ -196,7 +196,7 @@ const Contact = () => {
 											value="other"
 											checked={formData.subject === 'other'}
 											onChange={handleChange}
-											className="h-4 w-4 text-[#2dbe8b]"
+											className="h-4 w-4 text-[#46a796]"
 										/>
 										<span className="text-sm">Other</span>
 									</label>
@@ -214,7 +214,7 @@ const Contact = () => {
 									onChange={handleChange}
 									placeholder="Write your message..."
 									rows={4}
-									className="w-full border-b border-gray-300 px-0 py-2 text-sm focus:border-[#2dbe8b] focus:outline-none"
+									className="w-full border-b border-gray-300 px-0 py-2 text-sm focus:border-[#46a796] focus:outline-none"
 									required
 								/>
 							</div>
@@ -223,7 +223,7 @@ const Contact = () => {
 							<div className="flex justify-end pt-4">
 								<button
 									type="submit"
-									className="rounded-full bg-[#2dbe8b] px-8 py-3 text-sm font-semibold text-white shadow-md hover:bg-[#26a878] transition-colors"
+									className="rounded-full bg-[#46a796] px-8 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#3a8c78]"
 								>
 									Send Message
 								</button>
