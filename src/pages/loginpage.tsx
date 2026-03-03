@@ -1,8 +1,20 @@
+import { signInWithPopup } from "firebase/auth"
+import { auth, googleProvider } from "../firebase"
+
 import { useState } from "react"
 
 const Login = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider)
+      console.log("Logged in user:", result.user)
+    } catch (error) {
+      console.error("Google login error:", error)
+    }
+  }
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,15 +101,18 @@ const Login = () => {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
+              <div className="relative z-10 w-full">
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="w-full rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-gray-700"
+                >
+                  Continue with Google
+                </button>
+              </div>
               <button
                 type="button"
-                className="rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-gray-700"
-              >
-                Continue with Google
-              </button>
-              <button
-                type="button"
-                className="rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-gray-700"
+                className="w-full rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-gray-700"
               >
                 Continue with Facebook
               </button>
