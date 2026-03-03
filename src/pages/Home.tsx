@@ -184,7 +184,7 @@ const Home = () => {
 						>
 							Clear
 						</button>
-						<button className="rounded-full bg-[#2dbe8b] px-5 py-2 text-sm font-semibold text-white" type="submit">
+						<button className="rounded-full bg-[#46a796] px-5 py-2 text-sm font-semibold text-white" type="submit">
 							Search
 						</button>
 					</div>
@@ -226,7 +226,7 @@ const Home = () => {
 								</div>
 								<div className="mt-16 h-28 rounded-2xl bg-gradient-to-b from-gray-200 to-gray-300" />
 							</div>
-							<div className="rounded-b-[34px] bg-[#2dbe8b] px-6 py-6 text-white">
+							<div className="rounded-b-[34px] bg-[#46a796] px-6 py-6 text-white">
 								<p className="text-lg font-semibold">{property.title}</p>
 								<p className="text-sm text-white/80">{property.location}</p>
 								<p className="mt-4 text-xl font-semibold">{property.price}</p>

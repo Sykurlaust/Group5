@@ -139,7 +139,7 @@ const AboutUs: React.FC = () => {
 				</section>
 
 				{/* Stats Section */}
-				<section className="rounded-[40px] border border-black/5 bg-gradient-to-r from-[#2dbe8b] to-[#3f37f0] px-8 py-12 shadow-lg text-white">
+				<section className="rounded-[40px] border border-black/5 bg-gradient-to-r from-[#46a796] to-[#3f37f0] px-8 py-12 shadow-lg text-white">
 					<div className="grid gap-8 sm:grid-cols-3 text-center">
 						<div>
 							<div className="text-4xl font-bold mb-2">500+</div>
