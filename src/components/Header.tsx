@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from "react-router-dom"
 
 const Header = () => {
     return (
@@ -66,7 +66,12 @@ const Header = () => {
                                 placeholder="Search..."
                             />
                         </div>
-                        <button className="rounded-full border border-black/10 px-4 py-2 text-sm font-semibold">Log in</button>
+                        <Link
+                            className="rounded-full border border-black/10 px-4 py-2 text-sm font-semibold"
+                            to="/login"
+                        >
+                            Log in
+                        </Link>
                         <button className="rounded-full border border-[#2dbe8b] bg-white px-4 py-2 text-sm font-semibold text-[#2dbe8b]">
                             Sign up
                         </button>
