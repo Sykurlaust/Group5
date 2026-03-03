@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Home from "./pages/Home"
 import Contact from "./pages/Contact"
-import Rent from "./pages/Rent"
+import Login from './pages/loginpage'
 
 function App() {
   return (
@@ -10,7 +10,7 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/rent" element={<Rent />} />
+         <Route path="/login" element={<Login />} />
       </Routes>
     </Router>
   )
