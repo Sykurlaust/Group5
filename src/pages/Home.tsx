@@ -1,3 +1,6 @@
+import Header from '../components/Header'
+import Footer from '../components/Footer'
+
 type FilterConfig = {
 	label: string
 	placeholder: string
@@ -32,7 +35,9 @@ const heroImage =
 
 const Home = () => {
 	return (
-		<main id="home">
+		<div className="min-h-screen bg-[#f5f5f0] text-[#1f1f1f] font-['Space_Grotesk']">
+			<Header />
+			<main id="home">
 			<section className="mx-auto mt-10 max-w-6xl px-6">
 				<div className="rounded-[40px] border border-black/5 bg-white px-8 py-6 shadow-sm">
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-4">
@@ -106,6 +111,8 @@ const Home = () => {
 				</div>
 			</section>
 		</main>
+		<Footer />
+		</div>
 	)
 }
 
