@@ -1,10 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import Home from "./pages/Home"
 import Contact from "./pages/Contact"
-import Login from './pages/loginpage'
-import Rent from './pages/Rent'
-import AboutUs from './pages/AboutUs'
-import ScrollToTop from './components/ScrollToTop'
+import Login from "./pages/loginpage"
+import Rent from "./pages/Rent"
+import AboutUs from "./pages/AboutUs"
+import ScrollToTop from "./components/ScrollToTop"
 
 function App() {
   return (
