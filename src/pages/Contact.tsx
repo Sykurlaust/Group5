@@ -25,7 +25,7 @@ const Contact = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-[#f5f5f0]">
 			<Header />
 			
 			<main className="mx-auto max-w-6xl px-6 py-16">
