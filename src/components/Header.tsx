@@ -52,9 +52,9 @@ const Header = () => {
                         <Link className="text-[#2dbe8b]" to="/home">
                             Home
                         </Link>
-                        <a className="text-gray-700" href="#rent">
+                        <Link className="text-gray-700" to="/rent">
                             Rent
-                        </a>
+                        </Link>
                         <Link className="text-gray-700" to="/contact">
                             Contact
                         </Link>
