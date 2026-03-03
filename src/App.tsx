@@ -1,14 +1,16 @@
-import Header from "./components/Header"
-import Footer from "./components/Footer"
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Home from "./pages/Home"
+import Contact from "./pages/Contact"
 
 function App() {
   return (
-    <div className="min-h-screen bg-[#f5f5f0] text-[#1f1f1f] font-['Space_Grotesk']">
-      <Header />
-      <Home />
-      <Footer />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/contact" element={<Contact />} />
+      </Routes>
+    </Router>
   )
 }
 
