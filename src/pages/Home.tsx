@@ -1,17 +1,60 @@
-import Header from '../components/Header'
-import Footer from '../components/Footer'
+import { useEffect, useState } from "react"
+import type { ChangeEvent, FormEvent } from "react"
+import Header from "../components/Header"
+import Footer from "../components/Footer"
 
-type FilterConfig = {
-	label: string
-	placeholder: string
+type MunicipalityConfig = {
+	name: string
+	locations: string[]
 }
 
-const filters: FilterConfig[] = [
-	{ label: "Property type", placeholder: "Any property" },
-	{ label: "Municipality", placeholder: "All municipalities" },
-	{ label: "Location", placeholder: "Artenara" },
-	{ label: "Max. Price", placeholder: "Any price" },
+const propertyTypes = [
+	"Apartment",
+	"Penthouse",
+	"Villa",
+	"Townhouse",
+	"Rural house",
+	"Studio",
 ]
+
+const municipalities: MunicipalityConfig[] = [
+	{
+		name: "Las Palmas de Gran Canaria",
+		locations: ["Vegueta", "Triana", "Ciudad Jardín", "Las Canteras"],
+	},
+	{ name: "Telde", locations: ["San Juan", "La Garita", "Salinetas"] },
+	{ name: "Santa Brígida", locations: ["Los Olivos", "Monte Lentiscal"] },
+	{ name: "Arucas", locations: ["Casco", "Bañaderos", "Cardones"] },
+	{ name: "Gáldar", locations: ["Casco", "Sardina", "Barrial"] },
+	{ name: "Maspalomas", locations: ["Meloneras", "Playa del Inglés", "San Fernando"] },
+	{ name: "Mogán", locations: ["Puerto Rico", "Arguineguín", "Playa de Mogán"] },
+	{ name: "Agaete", locations: ["Puerto de las Nieves", "Valle de Agaete"] },
+	{ name: "Tejeda", locations: ["Casco", "La Culata"] },
+	{ name: "San Bartolomé de Tirajana", locations: ["Fataga", "Tunte"] },
+]
+
+const priceRanges = [
+	"Any price",
+	"Up to €600",
+	"€600 - €800",
+	"€800 - €1,000",
+	"€1,000 - €1,200",
+	"€1,200+",
+]
+
+type FilterState = {
+	propertyType: string
+	municipality: string
+	location: string
+	maxPrice: string
+}
+
+const initialFilters: FilterState = {
+	propertyType: propertyTypes[0],
+	municipality: municipalities[0].name,
+	location: municipalities[0].locations[0],
+	maxPrice: priceRanges[0],
+}
 
 type FeaturedProperty = {
 	id: number
@@ -22,55 +65,140 @@ type FeaturedProperty = {
 }
 
 const featuredProperties: FeaturedProperty[] = [
-	{ id: 1, tag: "New", title: "Oceanview Duplex", location: "Las Palmas", price: "€1,450/mo" },
-	{ id: 2, tag: "New", title: "Garden Villa", location: "Telde", price: "€1,320/mo" },
-	{ id: 3, tag: "New", title: "Historic Loft", location: "Arucas", price: "€1,180/mo" },
-	{ id: 4, tag: "New", title: "Coastal Retreat", location: "Maspalomas", price: "€1,560/mo" },
-	{ id: 5, tag: "New", title: "Mountain Hideout", location: "Tejeda", price: "€1,040/mo" },
-	{ id: 6, tag: "New", title: "City Penthouse", location: "Gáldar", price: "€1,610/mo" },
+	{ id: 1, tag: "Local", title: "Oceanview Duplex", location: "Las Palmas", price: "€950/mo" },
+	{ id: 2, tag: "Local", title: "Garden Villa", location: "Telde", price: "€890/mo" },
+	{ id: 3, tag: "Local", title: "Historic Loft", location: "Arucas", price: "€780/mo" },
+	{ id: 4, tag: "Local", title: "Coastal Retreat", location: "Maspalomas", price: "€1,050/mo" },
+	{ id: 5, tag: "Local", title: "Mountain Hideout", location: "Tejeda", price: "€720/mo" },
+	{ id: 6, tag: "Local", title: "City Penthouse", location: "Gáldar", price: "€1,120/mo" },
 ]
 
 const heroImage =
 	"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80"
 
 const Home = () => {
+	const [filterValues, setFilterValues] = useState<FilterState>(() => ({ ...initialFilters }))
+	const selectedMunicipality =
+		municipalities.find((entry) => entry.name === filterValues.municipality) ?? municipalities[0]
+
+	useEffect(() => {
+		if (selectedMunicipality.locations.includes(filterValues.location)) {
+			return
+		}
+		setFilterValues((prev) => ({ ...prev, location: selectedMunicipality.locations[0] }))
+	}, [filterValues.location, filterValues.municipality, selectedMunicipality])
+
+	const handleSelectChange = (field: keyof FilterState) => (event: ChangeEvent<HTMLSelectElement>) => {
+		setFilterValues((prev) => ({ ...prev, [field]: event.target.value }))
+	}
+
+	const handleResetFilters = () => setFilterValues({ ...initialFilters })
+
+	const handleSubmitFilters = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault()
+		// TODO: replace console output with real filtering once backend/search is wired
+		console.table(filterValues)
+	}
+
 	return (
 		<div className="min-h-screen bg-[#f5f5f0] text-[#1f1f1f] font-['Space_Grotesk']">
 			<Header />
 			<main id="home">
 			<section className="mx-auto mt-10 max-w-6xl px-6">
-				<div className="rounded-[40px] border border-black/5 bg-white px-8 py-6 shadow-sm">
+				<form className="rounded-[40px] border border-black/5 bg-white px-8 py-6 shadow-sm" onSubmit={handleSubmitFilters}>
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-						{filters.map((filter) => (
-							<div key={filter.label} className="space-y-2">
-								<p className="text-sm font-semibold text-gray-500">{filter.label}</p>
-								<div className="flex items-center justify-between rounded-[18px] border border-black/10 px-4 py-3 text-sm">
-									<span className="text-gray-700">{filter.placeholder}</span>
-									<span className="text-gray-400">⌄</span>
-								</div>
+						<label className="space-y-2 text-sm font-semibold text-gray-500">
+							Property type
+							<div className="relative rounded-[18px] border border-black/10">
+								<select
+									className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
+									value={filterValues.propertyType}
+									onChange={handleSelectChange("propertyType")}
+								>
+									{propertyTypes.map((type) => (
+										<option key={type} value={type}>
+											{type}
+										</option>
+									))}
+								</select>
+								<span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">⌄</span>
 							</div>
-						))}
+						</label>
+						<label className="space-y-2 text-sm font-semibold text-gray-500">
+							Municipality
+							<div className="relative rounded-[18px] border border-black/10">
+								<select
+									className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
+									value={filterValues.municipality}
+									onChange={handleSelectChange("municipality")}
+								>
+									{municipalities.map((municipality) => (
+										<option key={municipality.name} value={municipality.name}>
+											{municipality.name}
+										</option>
+									))}
+								</select>
+								<span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">⌄</span>
+							</div>
+						</label>
+						<label className="space-y-2 text-sm font-semibold text-gray-500">
+							Location
+							<div className="relative rounded-[18px] border border-black/10">
+								<select
+									className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
+									value={filterValues.location}
+									onChange={handleSelectChange("location")}
+								>
+									{selectedMunicipality.locations.map((locationOption) => (
+										<option key={locationOption} value={locationOption}>
+											{locationOption}
+										</option>
+									))}
+								</select>
+								<span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">⌄</span>
+							</div>
+						</label>
+						<label className="space-y-2 text-sm font-semibold text-gray-500">
+							Max. Price
+							<div className="relative rounded-[18px] border border-black/10">
+								<select
+									className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
+									value={filterValues.maxPrice}
+									onChange={handleSelectChange("maxPrice")}
+								>
+									{priceRanges.map((range) => (
+										<option key={range} value={range}>
+											{range}
+										</option>
+									))}
+								</select>
+								<span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">⌄</span>
+							</div>
+						</label>
 					</div>
 					<div className="mt-6 flex flex-wrap items-center justify-end gap-4">
-						<button className="flex items-center gap-2 rounded-full border border-black/10 px-5 py-2 text-sm font-semibold">Filter</button>
-						<button className="flex items-center gap-2 rounded-full bg-[#2dbe8b] px-5 py-2 text-sm font-semibold text-white">
-							<span role="img" aria-label="search">
-
-							</span>
+						<button
+							className="flex items-center gap-2 rounded-full border border-black/10 px-5 py-2 text-sm font-semibold"
+							onClick={handleResetFilters}
+							type="button"
+						>
+							Clear
+						</button>
+						<button className="rounded-full bg-[#2dbe8b] px-5 py-2 text-sm font-semibold text-white" type="submit">
 							Search
 						</button>
 					</div>
-				</div>
+				</form>
 			</section>
 
 			<section className="mx-auto mt-12 grid max-w-6xl gap-10 px-6 lg:grid-cols-[1fr,1.1fr]" id="rent">
 				<div>
 					<p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">Rent</p>
 					<h1 className="mt-4 text-4xl font-semibold leading-tight text-[#1f1f1f]">
-						Long-term rental properties in Gran Canaria.
+						Long-term rentals for Gran Canaria residents.
 					</h1>
 					<p className="mt-4 text-lg text-gray-600">
-						A great selection of property to rent in the best locations of the island, and professional support for landlords.
+						A curated selection of homes priced to stay within local salaries, protecting island communities while offering professional support for landlords.
 					</p>
 				</div>
 				<div className="relative overflow-hidden rounded-[40px]">
