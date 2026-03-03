@@ -1,7 +1,19 @@
-import Frontpage from "./pages/Frontpage"
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import Home from "./pages/Home"
+import Contact from "./pages/Contact"
+import Rent from "./pages/Rent"
 
 function App() {
-  return <Frontpage />
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/rent" element={<Rent />} />
+        <Route path="/contact" element={<Contact />} />
+      </Routes>
+    </Router>
+  )
 }
 
 export default App
