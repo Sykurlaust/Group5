@@ -16,7 +16,7 @@ const AccountRequiredModal = ({ onClose }: AccountRequiredModalProps) => {
         className="w-full max-w-md rounded-[32px] bg-white p-8 text-center shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2dbe8b]/10 text-[#2dbe8b]">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#46a796]/10 text-[#46a796]">
           <span className="text-2xl">🔐</span>
         </div>
         <h2 className="mt-6 text-2xl font-semibold text-[#1f1f1f]">Login required</h2>
@@ -27,7 +27,7 @@ const AccountRequiredModal = ({ onClose }: AccountRequiredModalProps) => {
         <div className="mt-8 flex flex-col gap-3">
           <Link
             to="/login"
-            className="w-full rounded-full bg-[#2dbe8b] px-5 py-3 text-sm font-semibold text-white hover:bg-[#27a174]"
+            className="w-full rounded-full bg-[#46a796] px-5 py-3 text-sm font-semibold text-white hover:opacity-90"
             onClick={onClose}
           >
             Log in

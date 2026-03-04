@@ -4,7 +4,7 @@ function Privacy() {
   return (
     <main className="min-h-screen bg-[#f5f5f0] px-6 py-16 text-[#1f1f1f]">
       <section className="mx-auto max-w-3xl rounded-[32px] border border-black/5 bg-white p-10 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#2dbe8b]">Privacy Policy</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#46a796]">Privacy Policy</p>
         <h1 className="mt-4 text-4xl font-semibold">Group 5 Privacy Policy</h1>
         <p className="mt-6 text-base leading-8 text-gray-600">
           This app uses Google and Facebook login for authentication. We only collect the profile
@@ -20,7 +20,7 @@ function Privacy() {
           <span className="font-semibold"> diogojrxavier15@gmail.com</span>.
         </p>
         <Link
-          className="mt-8 inline-flex rounded-full bg-[#2dbe8b] px-6 py-3 text-sm font-semibold text-white"
+          className="mt-8 inline-flex rounded-full bg-[#46a796] px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
           to="/home"
         >
           Back to Home

@@ -38,7 +38,7 @@ const Signup = () => {
       <Header />
       <main className="mx-auto mt-12 max-w-6xl px-6 pb-16">
         <section className="mx-auto grid gap-10 lg:grid-cols-[1fr,1.1fr]">
-          <div className="rounded-[40px] bg-[#2dbe8b] p-10 text-white shadow-sm">
+          <div className="rounded-[40px] bg-[#46a796] p-10 text-white shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/80">Join us</p>
             <h1 className="mt-4 text-4xl font-semibold leading-tight">Sign up for GC-Renting</h1>
             <p className="mt-4 text-lg text-white/80">
@@ -69,7 +69,7 @@ const Signup = () => {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-500">Full name</label>
                 <input
-                  className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#2dbe8b]"
+                  className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#46a796]"
                   placeholder="Your full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -81,7 +81,7 @@ const Signup = () => {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-500">Email</label>
                 <input
-                  className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#2dbe8b]"
+                  className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#46a796]"
                   placeholder="you@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -93,7 +93,7 @@ const Signup = () => {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-500">Password</label>
                 <input
-                  className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#2dbe8b]"
+                  className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#46a796]"
                   placeholder="Create a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -102,7 +102,7 @@ const Signup = () => {
                 />
               </div>
 
-              <button className="w-full rounded-full bg-[#2dbe8b] px-5 py-3 text-sm font-semibold text-white">
+              <button className="w-full rounded-full bg-[#46a796] px-5 py-3 text-sm font-semibold text-white hover:opacity-90">
                 Sign up
               </button>
 
@@ -133,7 +133,7 @@ const Signup = () => {
 
               <p className="pt-2 text-center text-sm text-gray-600">
                 Already have an account?{" "}
-                <Link className="font-semibold text-[#2dbe8b]" to="/login">
+                <Link className="font-semibold text-[#46a796]" to="/login">
                   Log in
                 </Link>
               </p>
