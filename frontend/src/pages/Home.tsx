@@ -1,27 +1,33 @@
+import { useState } from "react"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
+import PropertyModal from "../components/PropertyModal"
 
 type FeaturedProperty = {
 	id: number
 	tag: string
 	title: string
 	location: string
-	price: string
+	municipality: string
+	price: number
+	type: string
+	images?: string[]
 }
 
 const featuredProperties: FeaturedProperty[] = [
-	{ id: 1, tag: "Local", title: "Oceanview Duplex", location: "Las Palmas", price: "€950/mo" },
-	{ id: 2, tag: "Local", title: "Garden Villa", location: "Telde", price: "€890/mo" },
-	{ id: 3, tag: "Local", title: "Historic Loft", location: "Arucas", price: "€780/mo" },
-	{ id: 4, tag: "Local", title: "Coastal Retreat", location: "Maspalomas", price: "€1,050/mo" },
-	{ id: 5, tag: "Local", title: "Mountain Hideout", location: "Tejeda", price: "€720/mo" },
-	{ id: 6, tag: "Local", title: "City Penthouse", location: "Gáldar", price: "€1,120/mo" },
+	{ id: 1, tag: "Local", title: "Oceanview Duplex", location: "Las Palmas", municipality: "Las Palmas", price: 950, type: "Duplex" },
+	{ id: 2, tag: "Local", title: "Garden Villa", location: "Telde", municipality: "Telde", price: 890, type: "Villa" },
+	{ id: 3, tag: "Local", title: "Historic Loft", location: "Arucas", municipality: "Arucas", price: 780, type: "Loft" },
+	{ id: 4, tag: "Local", title: "Coastal Retreat", location: "Maspalomas", municipality: "San Bartolomé de Tirajana", price: 1050, type: "House" },
+	{ id: 5, tag: "Local", title: "Mountain Hideout", location: "Tejeda", municipality: "Tejeda", price: 720, type: "Cottage" },
+	{ id: 6, tag: "Local", title: "City Penthouse", location: "Gáldar", municipality: "Gáldar", price: 1120, type: "Penthouse" },
 ]
 
 const heroImage =
 	"src/assets/reiseuhu-W_7-oQmwyuw-unsplash.jpg"
 
 const Home = () => {
+	const [selectedProperty, setSelectedProperty] = useState<FeaturedProperty | null>(null)
 	return (
 		<div className="min-h-screen bg-[#f5f5f0] text-[#1f1f1f] font-['Space_Grotesk']">
 			<Header />
@@ -52,7 +58,11 @@ const Home = () => {
 				</div>
 				<div className="mt-10 grid gap-8 md:grid-cols-3">
 					{featuredProperties.map((property) => (
-						<article key={property.id} className="rounded-[34px] border border-black/5 bg-white shadow-sm">
+						<article
+							key={property.id}
+							onClick={() => setSelectedProperty(property)}
+							className="rounded-[34px] border border-black/5 bg-white shadow-sm cursor-pointer hover:shadow-md transition"
+						>
 							<div className="rounded-t-[34px] bg-gray-200 p-4">
 								<div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-[#3f37f0]">
 									<span>{property.tag}</span>
@@ -63,7 +73,7 @@ const Home = () => {
 							<div className="rounded-b-[34px] bg-[#46a796] px-6 py-6 text-white">
 								<p className="text-lg font-semibold">{property.title}</p>
 								<p className="text-sm text-white/80">{property.location}</p>
-								<p className="mt-4 text-xl font-semibold">{property.price}</p>
+								<p className="mt-4 text-xl font-semibold">€{property.price.toLocaleString()}/mo</p>
 							</div>
 						</article>
 					))}
@@ -73,6 +83,14 @@ const Home = () => {
 				</div>
 			</section>
 		</main>
+
+		{selectedProperty && (
+			<PropertyModal
+				property={selectedProperty}
+				onClose={() => setSelectedProperty(null)}
+			/>
+		)}
+
 		<Footer />
 		</div>
 	)
