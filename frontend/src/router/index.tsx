@@ -7,6 +7,7 @@ import Home from "../pages/Home"
 import Login from "../pages/loginpage"
 import Privacy from "../pages/Privacy"
 import Rent from "../pages/Rent"
+import Signup from "../pages/signuppage"
 
 const AppRouter = () => (
   <BrowserRouter>
@@ -16,6 +17,7 @@ const AppRouter = () => (
       <Route path="/home" element={<Home />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
       <Route path="/rent" element={<Rent />} />
       <Route path="/about" element={<AboutUs />} />
       <Route path="/privacy" element={<Privacy />} />
