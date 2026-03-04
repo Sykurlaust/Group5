@@ -41,9 +41,12 @@ const Header = () => {
                         >
                             Log in
                         </Link>
-                        <button className="rounded-full border border-white/70 bg-transparent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#46a796]">
+                        <Link
+                            className="rounded-full border border-white/70 bg-transparent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#46a796]"
+                            to="/signup"
+                        >
                             Sign up
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>
