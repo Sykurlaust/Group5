@@ -15,18 +15,15 @@ const Header = () => {
                         </div>
                     </div>
                     <nav className="flex flex-1 items-center justify-center gap-6 text-sm font-semibold">
-                        <Link className="text-white/80 transition-colors hover:text-white" to="/home">
+                        <a className="text-white/80 transition-colors hover:text-white" href="#home">
                             Home
-                        </Link>
-                        <Link className="text-white/80 transition-colors hover:text-white" to="/rent">
+                        </a>
+                        <a className="text-white/80 transition-colors hover:text-white" href="#rent">
                             Rent
-                        </Link>
-                        <Link className="text-white/80 transition-colors hover:text-white" to="/about">
-                            About Us
-                        </Link>
-                        <Link className="text-white/80 transition-colors hover:text-white" to="/contact">
+                        </a>
+                        <a className="text-white/80 transition-colors hover:text-white" href="#contact">
                             Contact
-                        </Link>
+                        </a>
                     </nav>
                     <div className="flex flex-1 items-center justify-end gap-3">
                         <div className="relative w-48">
@@ -35,10 +32,7 @@ const Header = () => {
                                 placeholder="Search..."
                             />
                         </div>
-                        <Link
-                            className="rounded-full border border-white bg-white px-4 py-2 text-sm font-semibold text-[#46a796] transition-colors hover:bg-[#e5f3ef]"
-                            to="/login"
-                        >
+                        <Link className="rounded-full border border-white bg-white px-4 py-2 text-sm font-semibold text-[#46a796] transition-colors hover:bg-[#e5f3ef]" to="/login">
                             Log in
                         </Link>
                         <button className="rounded-full border border-white/70 bg-transparent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#46a796]">

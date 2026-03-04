@@ -184,29 +184,28 @@ const Home = () => {
 						>
 							Clear
 						</button>
-						<button className="rounded-full bg-[#2dbe8b] px-5 py-2 text-sm font-semibold text-white" type="submit">
+						<button className="rounded-full bg-[#46a796] px-5 py-2 text-sm font-semibold text-white" type="submit">
 							Search
 						</button>
 					</div>
 				</form>
 			</section>
 
-			<section className="mx-auto mt-12 grid max-w-6xl gap-10 px-6 lg:grid-cols-[1fr,1.1fr]" id="rent">
-				<div>
-					<p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">Rent</p>
-					<h1 className="mt-4 text-4xl font-semibold leading-tight text-[#1f1f1f]">
-						Long-term rentals for Gran Canaria residents.
-					</h1>
-					<p className="mt-4 text-lg text-gray-600">
-						A curated selection of homes priced to stay within local salaries, protecting island communities while offering professional support for landlords.
+			<section className="mx-auto mt-16 grid w-full max-w-7xl gap-12 px-6 lg:grid-cols-[1.1fr,1fr] lg:items-stretch" id="rent">
+				<div className="space-y-4">
+					<p className="text-base font-semibold text-[#1f1f1f]">Rent</p>
+					<p className="text-xl leading-relaxed text-[#1f1f1f]">
+						Long-term rental properties in Gran Canaria. A great selection of property to rent in the best locations of the island, and professional support for landlords.
 					</p>
 				</div>
-				<div className="relative overflow-hidden rounded-[40px]">
-					<img alt="Gran Canaria coast" className="h-full w-full object-cover" src={heroImage} />
-					<div className="absolute bottom-8 left-8 rounded-[30px] bg-white/85 px-8 py-5 text-[#1f1f1f]">
-						<p className="text-sm uppercase tracking-[0.5em] text-gray-500">GC</p>
-						<p className="text-4xl font-semibold">GC-Renting</p>
-						<p className="mt-1 text-xs uppercase tracking-[0.4em] text-gray-400">Premium Rentals</p>
+				<div className="relative mx-auto h-80 w-full max-w-none overflow-hidden rounded-[36px] sm:h-96 lg:h-[420px]">
+					<img alt="Gran Canaria cliffs" className="h-full w-full object-cover" src={heroImage} />
+					<div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center text-[#1f1f1f]">
+						<div className="flex flex-col gap-3 text-5xl font-semibold uppercase tracking-tight drop-shadow-sm md:text-6xl">
+							<span className="mx-auto rounded-[6px] bg-[#5fd0bb] px-6 py-2">Gran</span>
+							<span className="mx-auto rounded-[6px] bg-[#5fd0bb] px-6 py-2">Canaria</span>
+						</div>
+						<p className="text-xs font-semibold uppercase tracking-[0.5em] text-white drop-shadow-lg">Collection</p>
 					</div>
 				</div>
 			</section>
@@ -226,7 +225,7 @@ const Home = () => {
 								</div>
 								<div className="mt-16 h-28 rounded-2xl bg-gradient-to-b from-gray-200 to-gray-300" />
 							</div>
-							<div className="rounded-b-[34px] bg-[#2dbe8b] px-6 py-6 text-white">
+							<div className="rounded-b-[34px] bg-[#46a796] px-6 py-6 text-white">
 								<p className="text-lg font-semibold">{property.title}</p>
 								<p className="text-sm text-white/80">{property.location}</p>
 								<p className="mt-4 text-xl font-semibold">{property.price}</p>

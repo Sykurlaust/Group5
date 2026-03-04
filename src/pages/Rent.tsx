@@ -18,7 +18,7 @@ const Rent: React.FC = () => {
               className="relative rounded-[34px] overflow-hidden shadow-sm bg-white"
             >
               <div className="h-40 bg-gray-200" />
-              <div className="h-24 bg-[#2dbe8b]" />
+              <div className="h-24 bg-[#46a796]" />
               <span className="absolute top-2 left-2 bg-[#3f37f0] text-white text-xs px-2 py-1 rounded">
                 For rent
               </span>
