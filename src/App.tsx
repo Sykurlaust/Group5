@@ -25,6 +25,9 @@ function App() {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       </Routes>
     </Router>
