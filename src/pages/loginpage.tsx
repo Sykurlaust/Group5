@@ -1,5 +1,5 @@
 import { signInWithPopup } from "firebase/auth"
-import { auth, googleProvider } from "../firebase"
+import { auth, googleProvider, facebookProvider } from "../firebase"
 
 import { useState } from "react"
 
@@ -13,6 +13,15 @@ const Login = () => {
       console.log("Logged in user:", result.user)
     } catch (error) {
       console.error("Google login error:", error)
+    }
+  }
+
+  const handleFacebookLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, facebookProvider)
+      console.log("Facebook user:", result.user)
+    } catch (error) {
+      console.error("Facebook login error:", error)
     }
   }
 
@@ -112,6 +121,7 @@ const Login = () => {
               </div>
               <button
                 type="button"
+                onClick={handleFacebookLogin}
                 className="w-full rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-gray-700"
               >
                 Continue with Facebook
