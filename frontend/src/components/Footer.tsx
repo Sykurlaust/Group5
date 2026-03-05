@@ -38,21 +38,21 @@ const Footer = () => {
 						</a>
 					</div>
 				</div>
-				<div className="space-y-2 text-sm">
-					<p className="font-semibold text-gray-600">Company</p>
-					<Link to="/about" className="block transition-colors hover:text-[#047857]">About</Link>
-                    <Link to="/privacy" className="block transition-colors hover:text-[#047857]">Privacy</Link>
-                    <Link to="/terms" className="block transition-colors hover:text-[#047857]">Terms</Link>
+<div className="space-y-3 text-sm">
+				<p className="text-base font-semibold text-gray-600 tracking-wide">Company</p>
+				<Link to="/about" className="block transition-colors hover:text-[#047857]">About Us</Link>
+                    <Link to="/privacy" className="block transition-colors hover:text-[#047857]">Privacy Policy</Link>
+                    <Link to="/terms" className="block transition-colors hover:text-[#047857]">Terms &amp; Conditions</Link>
                     <Link to="/data-deletion" className="block transition-colors hover:text-[#047857]">Data Deletion</Link>
 				</div>
-				<div className="space-y-2 text-sm">
-					<p className="font-semibold text-gray-600">Explore</p>
+<div className="space-y-3 text-sm">
+				<p className="text-base font-semibold text-gray-600 tracking-wide">Explore</p>
 					<Link to="/home" className="block transition-colors hover:text-[#047857]">Home</Link>
 					<Link to="/rent" className="block transition-colors hover:text-[#047857]">Rent</Link>
 					<Link to="/contact" className="block transition-colors hover:text-[#047857]">Contact</Link>
 				</div>
 				<div>
-					<p className="font-semibold text-gray-600">Contact</p>
+					<p className="text-base font-semibold text-gray-600 tracking-wide">Contact</p>
 					<form className="mt-4 space-y-3" aria-label="Footer contact form">
 						<div>
 							<label htmlFor="footer-name" className="sr-only">Name</label>

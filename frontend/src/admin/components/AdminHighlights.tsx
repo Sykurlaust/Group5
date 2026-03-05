@@ -15,7 +15,7 @@ const AdminHighlights = () => {
       <Swiper className="mt-4" slidesPerView={1} spaceBetween={12}>
         {slides.map((slide) => (
           <SwiperSlide key={slide}>
-            <div className="rounded-2xl border border-[#2dbe8b]/30 bg-[#2dbe8b]/10 p-4 text-sm font-medium text-[#1f1f1f]">
+            <div className="rounded-2xl border border-[#047857]/30 bg-[#047857]/10 p-4 text-sm font-medium text-[#1f1f1f]">
               {slide}
             </div>
           </SwiperSlide>

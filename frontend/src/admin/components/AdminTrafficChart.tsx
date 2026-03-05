@@ -11,7 +11,7 @@ const options: ApexOptions = {
     toolbar: { show: false },
     zoom: { enabled: false },
   },
-  colors: ["#2dbe8b"],
+  colors: ["#047857"],
   dataLabels: { enabled: false },
   grid: {
     borderColor: "#e5e7eb",
