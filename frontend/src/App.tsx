@@ -7,6 +7,7 @@ import AboutUs from "./pages/AboutUs"
 import Contact from "./pages/Contact"
 import DataDeletion from "./pages/DataDeletion"
 import Home from "./pages/Home"
+import Listings from "./pages/Listings"
 import Login from "./pages/loginpage"
 import Privacy from "./pages/Privacy"
 import Rent from "./pages/Rent"
@@ -23,6 +24,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/rent" element={<Rent />} />
+        <Route path="/listings" element={<Listings />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/data-deletion" element={<DataDeletion />} />

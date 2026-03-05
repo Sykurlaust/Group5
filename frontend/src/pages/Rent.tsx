@@ -139,7 +139,7 @@ const Carousel = ({ items }: { items?: Property[] }) => {
 	const [selected, setSelected] = useState<Property | null>(null)
 
 	// favorites and auth UI (placeholder — integrate real auth as needed)
-	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
+	const [isLoggedIn] = useState<boolean>(false)
 	const [favorites, setFavorites] = useState<number[]>([])
 	const [showAuthModal, setShowAuthModal] = useState(false)
 
