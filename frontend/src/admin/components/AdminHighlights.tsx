@@ -1,6 +1,4 @@
-import { Swiper, SwiperSlide } from "swiper/react"
-
-const slides = [
+const highlights = [
   "Keep your profile complete to improve trust and booking speed.",
   "Respond to messages quickly to maintain high dashboard activity.",
   "Review active listings weekly for better conversion.",
@@ -8,19 +6,20 @@ const slides = [
 
 const AdminHighlights = () => {
   return (
-    <section className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm">
+    <section className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <h2 className="text-lg font-semibold text-[#1f1f1f]">Quick Highlights</h2>
-      <p className="mt-1 text-sm text-gray-500">Small TailAdmin-style carousel for updates.</p>
+      <p className="mt-1 text-sm text-gray-500">Status notes for today.</p>
 
-      <Swiper className="mt-4" slidesPerView={1} spaceBetween={12}>
-        {slides.map((slide) => (
-          <SwiperSlide key={slide}>
-            <div className="rounded-2xl border border-[#047857]/30 bg-[#047857]/10 p-4 text-sm font-medium text-[#1f1f1f]">
-              {slide}
-            </div>
-          </SwiperSlide>
+      <ul className="mt-4 space-y-3">
+        {highlights.map((highlight) => (
+          <li
+            className="rounded-2xl border border-[#047857]/20 bg-[#047857]/10 px-4 py-3 text-sm font-medium text-[#1f1f1f]"
+            key={highlight}
+          >
+            {highlight}
+          </li>
         ))}
-      </Swiper>
+      </ul>
     </section>
   )
 }

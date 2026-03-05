@@ -39,11 +39,11 @@ const series = [
 
 const AdminTrafficChart = ({ title }: AdminTrafficChartProps) => {
   return (
-    <section className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm">
+    <section className="flex h-[413px] w-full flex-col overflow-hidden rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <h2 className="text-lg font-semibold text-[#1f1f1f]">{title}</h2>
       <p className="mt-1 text-sm text-gray-500">Weekly traffic trend for this dashboard.</p>
-      <div className="mt-4">
-        <ReactApexChart height={280} options={options} series={series} type="line" />
+      <div className="mt-4 min-h-0 flex-1">
+        <ReactApexChart height="100%" options={options} series={series} type="line" />
       </div>
     </section>
   )

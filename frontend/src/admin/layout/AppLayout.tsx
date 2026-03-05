@@ -6,11 +6,11 @@ import { AdminSidebarProvider } from "../context/AdminSidebarContext"
 const AppLayout = () => {
   return (
     <AdminSidebarProvider>
-      <div className="min-h-screen bg-[#f5f5f0]">
+      <div className="min-h-screen overflow-x-hidden bg-[#f5f5f0]">
         <AdminSidebar />
-        <div className="lg:pl-72">
+        <div>
           <AdminHeader />
-          <main className="mx-auto max-w-[1200px] px-4 pb-8 md:px-8">
+          <main className="mx-auto w-full max-w-[1120px] px-4 pb-8 md:px-8">
             <Outlet />
           </main>
         </div>

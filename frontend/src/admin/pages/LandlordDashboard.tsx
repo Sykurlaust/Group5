@@ -10,14 +10,14 @@ const LandlordDashboard = () => {
         <title>Landlord Dashboard | GC-Renting</title>
       </Helmet>
 
-      <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-3">
+      <div className="w-full space-y-6">
+        <div className="grid w-full items-stretch gap-4 md:grid-cols-3">
           <AdminStatCard helper="Active property listings" label="Listings" value="9" />
           <AdminStatCard helper="New renter inquiries" label="Leads" value="17" />
           <AdminStatCard helper="Pending verification items" label="Tasks" value="6" />
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[2fr,1fr]">
+        <div className="grid w-full gap-6">
           <AdminTrafficChart title="Landlord Listing Traffic" />
           <AdminHighlights />
         </div>

@@ -8,14 +8,21 @@ const navItems = [
 ]
 
 const sidebarBase =
-  "fixed inset-y-0 left-0 z-40 w-72 bg-white p-5 shadow-xl shadow-black/5 transition-transform duration-300 lg:translate-x-0 lg:shadow-none"
+  "fixed inset-y-0 left-0 z-40 w-72 border-r border-black/5 bg-white/95 p-5 shadow-xl shadow-black/10 backdrop-blur transition-transform duration-500 ease-in-out"
 
 const AdminSidebar = () => {
   const { closeSidebar, isSidebarOpen } = useAdminSidebar()
 
   return (
     <>
-      <aside className={cn(sidebarBase, isSidebarOpen ? "translate-x-0" : "-translate-x-full")}>
+      <aside
+        className={cn(
+          sidebarBase,
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:-translate-x-[calc(100%-18px)]",
+          "lg:hover:translate-x-0",
+        )}
+      >
+        <div className="absolute right-[3px] top-1/2 hidden h-16 w-2 -translate-y-1/2 rounded-full bg-[#047857] shadow-sm lg:block" />
         <div className="flex items-center justify-between pb-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#047857]">Admin</p>
