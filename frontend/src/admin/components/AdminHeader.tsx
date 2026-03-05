@@ -18,7 +18,7 @@ const AdminHeader = () => {
               Menu
             </button>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2dbe8b]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#047857]">
                 Dashboard
               </p>
               <p className="text-lg font-semibold text-[#1f1f1f]">Admin Overview</p>
@@ -30,7 +30,7 @@ const AdminHeader = () => {
               <DateRangeInput />
             </div>
             <Link
-              className="rounded-full bg-[#2dbe8b] px-4 py-2 text-center text-sm font-semibold text-white shadow-md shadow-[#2dbe8b]/30 transition hover:bg-[#26a57a]"
+              className="rounded-full bg-[#047857] px-4 py-2 text-center text-sm font-semibold text-white shadow-md shadow-[#047857]/30 transition hover:bg-[#036c50]"
               to="/home"
             >
               Back to Public Site

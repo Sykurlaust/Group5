@@ -18,7 +18,7 @@ const AdminSidebar = () => {
       <aside className={cn(sidebarBase, isSidebarOpen ? "translate-x-0" : "-translate-x-full")}>
         <div className="flex items-center justify-between pb-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2dbe8b]">Admin</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#047857]">Admin</p>
             <p className="text-xl font-semibold text-[#1f1f1f]">GC-Renting</p>
           </div>
           <button
@@ -37,8 +37,8 @@ const AdminSidebar = () => {
                 cn(
                   "block rounded-full px-4 py-2.5 text-sm font-semibold transition-colors",
                   isActive
-                    ? "bg-[#2dbe8b] text-white shadow-md shadow-[#2dbe8b]/30"
-                    : "text-gray-600 hover:bg-[#2dbe8b]/10 hover:text-[#2dbe8b]",
+                    ? "bg-[#047857] text-white shadow-md shadow-[#047857]/30"
+                    : "text-gray-600 hover:bg-[#047857]/10 hover:text-[#047857]",
                 )
               }
               key={item.to}
