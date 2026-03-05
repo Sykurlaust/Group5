@@ -30,3 +30,4 @@ dist-ssr
 # Firebase importer secrets/data
 scripts/serviceAccountKey.json
 scripts/csvjson.json
+scripts/csvjson.source.html

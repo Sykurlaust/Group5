@@ -1,0 +1,11 @@
+{
+  "name": "group5-import-tools",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "import:listings": "node scripts/importListings.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.7.0"
+  }
+}
