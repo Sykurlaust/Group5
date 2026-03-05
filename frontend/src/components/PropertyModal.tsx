@@ -120,7 +120,7 @@ export default function PropertyModal({
 
           {/* Location & Municipality */}
           <div className="mt-2 flex items-center gap-2 text-gray-600">
-            <svg className="w-5 h-5 text-[#46a796]" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-5 h-5 text-[#047857]" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
             </svg>
             <span className="font-medium">{property.location}</span>
@@ -130,7 +130,7 @@ export default function PropertyModal({
 
           {/* Price & Type */}
           <div className="mt-6 grid grid-cols-2 gap-4">
-            <div className="bg-gradient-to-br from-[#46a796]/10 to-[#46a796]/5 rounded-xl p-4 border border-[#46a796]/20">
+            <div className="bg-gradient-to-br from-[#047857]/10 to-[#047857]/5 rounded-xl p-4 border border-[#047857]/20">
               <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Price</div>
               <div className="mt-2 text-3xl font-bold text-gray-900">€{property.price.toLocaleString()}/mo</div>
             </div>
@@ -144,7 +144,7 @@ export default function PropertyModal({
         {/* Footer */}
         <div className="border-t border-gray-200 p-6 bg-gray-50">
           <button
-            className="w-full bg-[#46a796] text-white font-semibold py-3 rounded-lg hover:bg-[#3a8a7a] transition shadow-md"
+            className="w-full bg-[#047857] text-white font-semibold py-3 rounded-lg hover:bg-[#3a8a7a] transition shadow-md"
             onClick={onClose}
           >
             Close

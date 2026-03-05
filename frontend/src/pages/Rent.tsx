@@ -198,7 +198,7 @@ const Carousel = ({ items }: { items?: Property[] }) => {
 								</div>
 							</div>
 							{/* Footer */}
-							<div className="rounded-b-[34px] bg-[#46a796] px-6 py-4 text-white">
+							<div className="rounded-b-[34px] bg-[#047857] px-6 py-4 text-white">
 								<p className="text-lg font-semibold">{p.title}</p>
 								<p className="text-sm text-white/80">{p.location}</p>
 								<p className="mt-3 text-xl font-semibold">€{p.price}/month</p>
@@ -452,7 +452,7 @@ const Rent = () => {
 							>
 								Clear
 							</button>
-							<button className="rounded-full bg-[#46a796] px-5 py-2 text-sm font-semibold text-white hover:opacity-95 hover:shadow-lg transition" type="submit">
+							<button className="rounded-full bg-[#047857] px-5 py-2 text-sm font-semibold text-white hover:opacity-95 hover:shadow-lg transition" type="submit">
 								Search
 							</button>
 						</div>

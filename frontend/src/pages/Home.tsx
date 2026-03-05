@@ -70,7 +70,7 @@ const Home = () => {
 								</div>
 								<div className="mt-16 h-28 rounded-2xl bg-gradient-to-b from-gray-200 to-gray-300" />
 							</div>
-							<div className="rounded-b-[34px] bg-[#46a796] px-6 py-6 text-white">
+							<div className="rounded-b-[34px] bg-[#047857] px-6 py-6 text-white">
 								<p className="text-lg font-semibold">{property.title}</p>
 								<p className="text-sm text-white/80">{property.location}</p>
 								<p className="mt-4 text-xl font-semibold">€{property.price.toLocaleString()}/mo</p>

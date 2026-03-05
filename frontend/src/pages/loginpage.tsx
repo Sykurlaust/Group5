@@ -38,7 +38,7 @@ const Login = () => {
       <Header />
       <main className="mx-auto mt-12 max-w-6xl px-6 pb-16">
         <section className="mx-auto grid gap-10 lg:grid-cols-[1fr,1.1fr]">
-          <div className="rounded-[40px] bg-[#46a796] p-10 text-white shadow-sm">
+          <div className="rounded-[40px] bg-[#047857] p-10 text-white shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/80">Welcome back</p>
             <h1 className="mt-4 text-4xl font-semibold leading-tight">Login to GC-Renting</h1>
             <p className="mt-4 text-lg text-white/80">
@@ -69,7 +69,7 @@ const Login = () => {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-500">Email</label>
                 <input
-                  className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#46a796]"
+                  className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#047857]"
                   placeholder="you@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -81,7 +81,7 @@ const Login = () => {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-500">Password</label>
                 <input
-                  className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#46a796]"
+                  className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#047857]"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -96,12 +96,12 @@ const Login = () => {
                   Remember me
                 </label>
 
-                <button type="button" className="text-sm font-semibold text-[#46a796]">
+                <button type="button" className="text-sm font-semibold text-[#047857]">
                   Forgot password?
                 </button>
               </div>
 
-              <button className="w-full rounded-full bg-[#46a796] px-5 py-3 text-sm font-semibold text-white hover:opacity-90">
+              <button className="w-full rounded-full bg-[#047857] px-5 py-3 text-sm font-semibold text-white hover:opacity-90">
                 Login
               </button>
 
@@ -132,7 +132,7 @@ const Login = () => {
 
               <p className="pt-2 text-center text-sm text-gray-600">
                 Don’t have an account?{" "}
-                <Link className="font-semibold text-[#46a796]" to="/signup">
+                <Link className="font-semibold text-[#047857]" to="/signup">
                   Sign up
                 </Link>
               </p>
