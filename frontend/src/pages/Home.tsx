@@ -15,12 +15,12 @@ type FeaturedProperty = {
 }
 
 const featuredProperties: FeaturedProperty[] = [
-	{ id: 1, tag: "Local", title: "Oceanview Duplex", location: "Las Palmas", municipality: "Las Palmas", price: 950, type: "Duplex" },
-	{ id: 2, tag: "Local", title: "Garden Villa", location: "Telde", municipality: "Telde", price: 890, type: "Villa" },
-	{ id: 3, tag: "Local", title: "Historic Loft", location: "Arucas", municipality: "Arucas", price: 780, type: "Loft" },
-	{ id: 4, tag: "Local", title: "Coastal Retreat", location: "Maspalomas", municipality: "San Bartolomé de Tirajana", price: 1050, type: "House" },
-	{ id: 5, tag: "Local", title: "Mountain Hideout", location: "Tejeda", municipality: "Tejeda", price: 720, type: "Cottage" },
-	{ id: 6, tag: "Local", title: "City Penthouse", location: "Gáldar", municipality: "Gáldar", price: 1120, type: "Penthouse" },
+	{ id: 1, tag: "Featured", title: "Oceanview Duplex", location: "Las Palmas", municipality: "Las Palmas", price: 950, type: "Duplex" },
+	{ id: 2, tag: "Featured", title: "Garden Villa", location: "Telde", municipality: "Telde", price: 890, type: "Villa" },
+	{ id: 3, tag: "Featured", title: "Historic Loft", location: "Arucas", municipality: "Arucas", price: 780, type: "Loft" },
+	{ id: 4, tag: "Featured", title: "Coastal Retreat", location: "Maspalomas", municipality: "San Bartolomé de Tirajana", price: 1050, type: "House" },
+	{ id: 5, tag: "Featured", title: "Mountain Hideout", location: "Tejeda", municipality: "Tejeda", price: 720, type: "Cottage" },
+	{ id: 6, tag: "Featured", title: "City Penthouse", location: "Gáldar", municipality: "Gáldar", price: 1120, type: "Penthouse" },
 ]
 
 const heroImage =
