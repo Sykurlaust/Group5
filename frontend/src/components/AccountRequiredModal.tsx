@@ -19,9 +19,9 @@ const AccountRequiredModal = ({ onClose }: AccountRequiredModalProps) => {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#047857]/10 text-[#047857]">
           <span className="text-2xl">🔐</span>
         </div>
-        <h2 className="mt-6 text-2xl font-semibold text-[#1f1f1f]">Login required</h2>
+        <h2 className="mt-6 text-2xl font-semibold text-[#1f1f1f]">You are not logged in</h2>
         <p className="mt-3 text-sm text-gray-500">
-          Create an account or log in to save favorites, contact landlords, and unlock more rental tools.
+          Log in or sign up to favorite homes, message landlords, and keep track of the rentals you love.
         </p>
 
         <div className="mt-8 flex flex-col gap-3">
@@ -37,7 +37,14 @@ const AccountRequiredModal = ({ onClose }: AccountRequiredModalProps) => {
             className="w-full rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             onClick={onClose}
           >
-            Create account
+            Sign up
+          </Link>
+          <Link
+            to="/login"
+            className="w-full rounded-full border border-dashed border-[#047857]/40 px-5 py-3 text-sm font-semibold text-[#047857] hover:bg-[#047857]/5"
+            onClick={onClose}
+          >
+            Login / Sign up portal
           </Link>
           <button
             type="button"

@@ -23,6 +23,25 @@ const featuredProperties: FeaturedProperty[] = [
 	{ id: 6, tag: "Featured", title: "City Penthouse", location: "Gáldar", municipality: "Gáldar", price: 1120, type: "Penthouse" },
 ]
 
+const featuredImageQueries: Record<string, string> = {
+	Duplex: "duplex,building,architecture",
+	Villa: "villa,house,architecture",
+	Loft: "loft,interior,architecture",
+	House: "house,modern,architecture",
+	Cottage: "cottage,rustic,house",
+	Penthouse: "penthouse,skyline,building",
+}
+
+const createFeaturedImages = (type: string, seed: number) => {
+	const query = featuredImageQueries[type] ?? "house,architecture"
+	return Array.from({ length: 3 }, (_, idx) => `https://loremflickr.com/640/480/${query}?lock=${seed * 3 + idx}`)
+}
+
+const featuredPropertiesWithImages: FeaturedProperty[] = featuredProperties.map((property) => ({
+	...property,
+	images: property.images ?? createFeaturedImages(property.type, property.id),
+}))
+
 const heroImage =
 	"src/assets/reiseuhu-W_7-oQmwyuw-unsplash.jpg"
 
@@ -57,23 +76,29 @@ const Home = () => {
 					<h2 className="mt-2 text-3xl font-semibold text-[#1f1f1f]">Gran Canaria</h2>
 				</div>
 				<div className="mt-10 grid gap-8 md:grid-cols-3">
-					{featuredProperties.map((property) => (
+					{featuredPropertiesWithImages.map((property) => (
 						<article
 							key={property.id}
 							onClick={() => setSelectedProperty(property)}
-							className="rounded-[34px] border border-black/5 bg-white shadow-sm cursor-pointer hover:shadow-md transition"
+							className="rounded-[34px] border border-black/5 bg-white shadow-sm cursor-pointer hover:shadow-lg transition overflow-hidden flex flex-col"
 						>
-							<div className="rounded-t-[34px] bg-gray-200 p-4">
-								<div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-[#3f37f0]">
+							<div className="relative h-48 w-full">
+								{property.images?.[0] ? (
+									<img src={property.images[0]} alt={property.title} className="h-full w-full object-cover" />
+								) : (
+									<div className="h-full w-full bg-gradient-to-b from-gray-200 to-gray-300" />
+								)}
+								<div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 py-4 text-xs font-semibold uppercase tracking-[0.3em] text-white bg-gradient-to-b from-black/60 to-transparent">
 									<span>{property.tag}</span>
 									<span>›</span>
 								</div>
-								<div className="mt-16 h-28 rounded-2xl bg-gradient-to-b from-gray-200 to-gray-300" />
 							</div>
-							<div className="rounded-b-[34px] bg-[#047857] px-6 py-6 text-white">
-								<p className="text-lg font-semibold">{property.title}</p>
-								<p className="text-sm text-white/80">{property.location}</p>
-								<p className="mt-4 text-xl font-semibold">€{property.price.toLocaleString()}/mo</p>
+							<div className="rounded-b-[34px] bg-[#047857] px-6 py-6 text-white flex flex-col gap-2 flex-1 justify-between">
+								<div>
+									<p className="text-lg font-semibold">{property.title}</p>
+									<p className="text-sm text-white/80">{property.location}</p>
+								</div>
+								<p className="text-xl font-semibold">€{property.price.toLocaleString()}/mo</p>
 							</div>
 						</article>
 					))}
