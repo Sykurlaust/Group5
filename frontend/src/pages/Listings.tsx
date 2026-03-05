@@ -23,8 +23,11 @@ const Listings = () => {
       try {
         const listingsQuery = query(collection(db, "listings"), limit(30))
         const snapshot = await getDocs(listingsQuery)
+        const filteredDocs = snapshot.docs.filter((doc) =>
+          isApartmentOnlyTitle(readString(doc.data().title)),
+        )
 
-        const fetchedListings = snapshot.docs.map((doc) => {
+        const fetchedListings = filteredDocs.map((doc) => {
           const data = doc.data()
           return {
             id: doc.id,
@@ -205,6 +208,23 @@ const readNumber = (value: unknown) => {
   }
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : 0
+}
+
+const isApartmentOnlyTitle = (title: string) => {
+  if (!title) {
+    return false
+  }
+
+  const normalized = title.toLowerCase()
+  const includesApartmentType = normalized.includes("flat") || normalized.includes("apartment")
+  const excludedType =
+    normalized.includes("house") ||
+    normalized.includes("villa") ||
+    normalized.includes("chalet") ||
+    normalized.includes("detached") ||
+    normalized.includes("semi-detached")
+
+  return includesApartmentType && !excludedType
 }
 
 export default Listings

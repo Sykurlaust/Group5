@@ -1,10 +1,9 @@
 import { collection, getDocs, limit, query } from "firebase/firestore"
 import { useEffect, useMemo, useState } from "react"
-import type { ChangeEvent, FormEvent, MouseEvent } from "react"
-import AccountRequiredModal from "../components/AccountRequiredModal"
+import type { ChangeEvent, FormEvent } from "react"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
-import PropertyModal from "../components/PropertyModal"
+import ListingCard from "../components/ListingCard"
 import { db } from "../lib/firebase"
 
 type MunicipalityConfig = {
@@ -26,6 +25,7 @@ type FilterState = {
   municipality: string
   location: string
   maxPrice: string
+  sortOrder: SortOrder
 }
 
 const initialFilters: FilterState = {
@@ -33,146 +33,24 @@ const initialFilters: FilterState = {
   municipality: "",
   location: "",
   maxPrice: "",
+  sortOrder: "none",
 }
 
+type SortOrder = "none" | "price-asc" | "price-desc"
+
 type Property = {
-  id: number
+  id: string
   title: string
   type: string
   municipality: string
   location: string
-  price: number
+  price: number | null
   currency: string
   description: string
   image: string
   url: string
-  bedrooms: number
-  area: number
-  images?: string[]
-}
-
-const Carousel = ({ items }: { items: Property[] }) => {
-  const ITEMS_PER_SLIDE = 6
-  const [slideIdx, setSlideIdx] = useState(0)
-  const [selected, setSelected] = useState<Property | null>(null)
-  const [isLoggedIn] = useState(false)
-  const [favorites, setFavorites] = useState<number[]>([])
-  const [showAuthModal, setShowAuthModal] = useState(false)
-
-  const slides = Math.max(1, Math.ceil(items.length / ITEMS_PER_SLIDE))
-  const start = slideIdx * ITEMS_PER_SLIDE
-  const currentItems = items.slice(start, start + ITEMS_PER_SLIDE)
-
-  useEffect(() => {
-    if (slideIdx >= slides) {
-      setSlideIdx(0)
-    }
-  }, [slideIdx, slides])
-
-  const showPrev = () => setSlideIdx((s) => (s - 1 + slides) % slides)
-  const showNext = () => setSlideIdx((s) => (s + 1) % slides)
-
-  const toggleFavorite = (property: Property, event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation()
-    if (!isLoggedIn) {
-      setShowAuthModal(true)
-      return
-    }
-    setFavorites((prev) =>
-      prev.includes(property.id) ? prev.filter((id) => id !== property.id) : [...prev, property.id],
-    )
-  }
-
-  const isFavorited = (id: number) => favorites.includes(id)
-
-  return (
-    <div className="relative flex items-center justify-center">
-      <div className="relative w-full max-w-5xl">
-        <button
-          aria-label="previous"
-          className="absolute -left-8 top-1/2 -translate-y-1/2 rounded-full p-2 text-2xl text-gray-700 transition-transform duration-150 hover:scale-110 hover:text-black"
-          onClick={showPrev}
-          type="button"
-        >
-          ‹
-        </button>
-
-        <div className="grid grid-cols-3 gap-6">
-          {currentItems.map((property) => (
-            <article
-              className="group relative cursor-pointer overflow-hidden rounded-[34px] border border-black/5 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-[0_16px_50px_rgba(0,0,0,0.08)]"
-              key={property.id}
-              onClick={() => setSelected(property)}
-            >
-              <button
-                aria-label={isFavorited(property.id) ? "Remove favorite" : "Add favorite"}
-                className="absolute right-4 top-4 z-20 rounded-full bg-white/90 p-2 text-gray-600 shadow-sm transition hover:scale-105"
-                onClick={(event) => toggleFavorite(property, event)}
-                type="button"
-              >
-                {isFavorited(property.id) ? (
-                  <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 .587l3.668 7.431L23.4 9.75l-5.7 5.554L18.9 24 12 20.013 5.1 24l1.2-8.696L.6 9.75l7.732-1.732z" />
-                  </svg>
-                ) : (
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                  </svg>
-                )}
-              </button>
-
-              <div className="rounded-t-[34px] bg-gray-200 p-4">
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-[#3f37f0]">
-                  <span>For rent</span>
-                  <span>›</span>
-                </div>
-                <div className="mt-4 h-40 overflow-hidden rounded-2xl">
-                  <img
-                    alt={property.title}
-                    className="h-full w-full object-cover"
-                    src={property.image || "https://placehold.co/640x360?text=No+Image"}
-                  />
-                </div>
-              </div>
-
-              <div className="rounded-b-[34px] bg-[#047857] px-6 py-4 text-white">
-                <p className="line-clamp-2 text-lg font-semibold">{property.title}</p>
-                <p className="text-sm text-white/80">
-                  {property.location}
-                  {property.municipality ? `, ${property.municipality}` : ""}
-                </p>
-                <p className="mt-3 text-xl font-semibold">
-                  {property.currency || "€"}
-                  {property.price.toLocaleString()}/month
-                </p>
-              </div>
-            </article>
-          ))}
-
-          {Array.from({ length: Math.max(0, ITEMS_PER_SLIDE - currentItems.length) }).map((_, index) => (
-            <div
-              className="flex flex-col items-center justify-center rounded-[34px] border border-dashed border-gray-200 bg-white p-6 text-center shadow-sm"
-              key={`empty-${index}`}
-            >
-              <p className="text-sm font-semibold text-gray-700">No more properties on this slide</p>
-            </div>
-          ))}
-        </div>
-
-        <button
-          aria-label="next"
-          className="absolute -right-8 top-1/2 -translate-y-1/2 rounded-full p-2 text-2xl text-gray-700 transition-transform duration-150 hover:scale-110 hover:text-black"
-          onClick={showNext}
-          type="button"
-        >
-          ›
-        </button>
-      </div>
-
-      {selected && <PropertyModal onClose={() => setSelected(null)} property={selected} />}
-      {showAuthModal && <AccountRequiredModal onClose={() => setShowAuthModal(false)} />}
-    </div>
-  )
+  bedrooms: number | null
+  area: number | null
 }
 
 const Rent = () => {
@@ -196,24 +74,24 @@ const Rent = () => {
           const image = readString(data.image)
 
           return {
-            id: Number.parseInt(doc.id, 10) || index + 1,
+            id: doc.id || `listing-${index + 1}`,
             title: title || `Listing ${index + 1}`,
             type,
             municipality,
             location,
-            price: readNumber(data.price),
+            price: parsePrice(data.price),
             currency: readString(data.currency) || "€",
             description: readString(data.description),
             image,
             url: readString(data.url),
-            bedrooms: readNumber(data.bedrooms),
-            area: readNumber(data.area),
-            images: image ? [image] : undefined,
+            bedrooms: readNullableNumber(data.bedrooms),
+            area: readNullableNumber(data.area),
           } satisfies Property
         })
 
-        setAllProperties(mapped)
-        setDisplayProperties(mapped)
+        const apartmentsOnly = mapped.filter((property) => isApartmentOnlyTitle(property.title))
+        setAllProperties(apartmentsOnly)
+        setDisplayProperties(apartmentsOnly)
       } catch (fetchError) {
         console.error("Failed to fetch rent listings:", fetchError)
         setError("Could not load listings from Firestore.")
@@ -280,7 +158,7 @@ const Rent = () => {
   const handleSubmitFilters = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const filtered = allProperties.filter((property) => matchesFilters(property, filterValues))
-    setDisplayProperties(filtered)
+    setDisplayProperties(sortByPrice(filtered, filterValues.sortOrder))
   }
 
   return (
@@ -300,7 +178,7 @@ const Rent = () => {
             className="rounded-[40px] border border-black/5 bg-white px-8 py-6 shadow-sm"
             onSubmit={handleSubmitFilters}
           >
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
               <label className="space-y-2 text-sm font-semibold text-gray-500">
                 Property type
                 <div className="relative rounded-[18px] border border-black/10">
@@ -384,6 +262,24 @@ const Rent = () => {
                   </span>
                 </div>
               </label>
+
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
+                Sort by price
+                <div className="relative rounded-[18px] border border-black/10">
+                  <select
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
+                    onChange={handleSelectChange("sortOrder")}
+                    value={filterValues.sortOrder}
+                  >
+                    <option value="none">Default</option>
+                    <option value="price-asc">Low to high</option>
+                    <option value="price-desc">High to low</option>
+                  </select>
+                  <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                    ⌄
+                  </span>
+                </div>
+              </label>
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-end gap-4">
@@ -418,8 +314,16 @@ const Rent = () => {
             <div className="rounded-[34px] border border-red-200 bg-red-50 p-10 text-center text-lg text-red-700 shadow-sm">
               {error}
             </div>
+          ) : displayProperties.length === 0 ? (
+            <div className="rounded-[34px] border border-black/5 bg-white p-10 text-center text-lg shadow-sm">
+              No apartments match your filters.
+            </div>
           ) : (
-            <Carousel items={displayProperties} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {displayProperties.map((property) => (
+                <ListingCard key={property.id} listing={property} />
+              ))}
+            </div>
           )}
         </section>
       </main>
@@ -431,12 +335,43 @@ const Rent = () => {
 
 const readString = (value: unknown) => (typeof value === "string" ? value : "")
 
-const readNumber = (value: unknown) => {
+const readNullableNumber = (value: unknown) => {
   if (typeof value === "number") {
-    return Number.isFinite(value) ? value : 0
+    return Number.isFinite(value) ? value : null
+  }
+  if (typeof value !== "string") {
+    return null
   }
   const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : 0
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const parsePrice = (value: unknown): number | null => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? Math.round(value) : null
+  }
+
+  if (typeof value !== "string") {
+    return null
+  }
+
+  const cleaned = value
+    .toLowerCase()
+    .replace(/\/\s*month|per\s*month|monthly|\/\s*mes|al\s*mes/g, "")
+    .replace(/[^\d.,]/g, "")
+    .trim()
+
+  if (!cleaned) {
+    return null
+  }
+
+  const digits = cleaned.replace(/[.,]/g, "")
+  if (!digits) {
+    return null
+  }
+
+  const parsed = Number.parseInt(digits, 10)
+  return Number.isNaN(parsed) ? null : parsed
 }
 
 const detectPropertyType = (title: string) => {
@@ -460,7 +395,11 @@ const extractLocationParts = (title: string) => {
   return { location, municipality }
 }
 
-const priceMatches = (price: number, range: string) => {
+const priceMatches = (price: number | null, range: string) => {
+  if (price === null) {
+    return range === "Any price"
+  }
+
   switch (range) {
     case "Any price":
       return true
@@ -485,6 +424,38 @@ const matchesFilters = (property: Property, filters: FilterState) => {
   if (filters.location && property.location !== filters.location) return false
   if (filters.maxPrice && !priceMatches(property.price, filters.maxPrice)) return false
   return true
+}
+
+const sortByPrice = (properties: Property[], sortOrder: SortOrder) => {
+  if (sortOrder === "none") {
+    return properties
+  }
+
+  const sorted = [...properties]
+  sorted.sort((a, b) => {
+    if (a.price === null && b.price === null) return 0
+    if (a.price === null) return 1
+    if (b.price === null) return -1
+    return sortOrder === "price-asc" ? a.price - b.price : b.price - a.price
+  })
+  return sorted
+}
+
+const isApartmentOnlyTitle = (title: string) => {
+  if (!title) {
+    return false
+  }
+
+  const normalized = title.toLowerCase()
+  const includesApartmentType = normalized.includes("flat") || normalized.includes("apartment")
+  const excludedType =
+    normalized.includes("house") ||
+    normalized.includes("villa") ||
+    normalized.includes("chalet") ||
+    normalized.includes("detached") ||
+    normalized.includes("semi-detached")
+
+  return includesApartmentType && !excludedType
 }
 
 export default Rent

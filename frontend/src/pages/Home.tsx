@@ -1,33 +1,78 @@
-import { useState } from "react"
-import Header from "../components/Header"
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore"
+import { useEffect, useState } from "react"
 import Footer from "../components/Footer"
-import PropertyModal from "../components/PropertyModal"
+import Header from "../components/Header"
+import ListingCard from "../components/ListingCard"
+import { db } from "../lib/firebase"
 
-type FeaturedProperty = {
-	id: number
-	tag: string
-	title: string
-	location: string
-	municipality: string
-	price: number
-	type: string
-	images?: string[]
+type FeaturedListing = {
+  id: string
+  title: string
+  price: number | null
+  currency: string
+  bedrooms: number | null
+  area: number | null
+  image: string
+  url: string
+  clicks: number
 }
 
-const featuredProperties: FeaturedProperty[] = [
-	{ id: 1, tag: "Featured", title: "Oceanview Duplex", location: "Las Palmas", municipality: "Las Palmas", price: 950, type: "Duplex" },
-	{ id: 2, tag: "Featured", title: "Garden Villa", location: "Telde", municipality: "Telde", price: 890, type: "Villa" },
-	{ id: 3, tag: "Featured", title: "Historic Loft", location: "Arucas", municipality: "Arucas", price: 780, type: "Loft" },
-	{ id: 4, tag: "Featured", title: "Coastal Retreat", location: "Maspalomas", municipality: "San Bartolomé de Tirajana", price: 1050, type: "House" },
-	{ id: 5, tag: "Featured", title: "Mountain Hideout", location: "Tejeda", municipality: "Tejeda", price: 720, type: "Cottage" },
-	{ id: 6, tag: "Featured", title: "City Penthouse", location: "Gáldar", municipality: "Gáldar", price: 1120, type: "Penthouse" },
-]
+const FEATURED_COUNT = 6
 
 const heroImage =
 	"src/assets/reiseuhu-W_7-oQmwyuw-unsplash.jpg"
 
 const Home = () => {
-	const [selectedProperty, setSelectedProperty] = useState<FeaturedProperty | null>(null)
+  const [featuredListings, setFeaturedListings] = useState<FeaturedListing[]>([])
+  const [loadingFeatured, setLoadingFeatured] = useState(true)
+  const [featuredError, setFeaturedError] = useState("")
+
+  useEffect(() => {
+    const loadFeaturedListings = async () => {
+      try {
+        const topClicksQuery = query(
+          collection(db, "listings"),
+          orderBy("clicks", "desc"),
+          limit(FEATURED_COUNT * 2),
+        )
+        const topClicksSnapshot = await getDocs(topClicksQuery)
+        const rankedListings = topClicksSnapshot.docs
+          .map((doc) => mapListingFromDoc(doc.id, doc.data()))
+          .filter((listing) => isApartmentOnlyTitle(listing.title))
+
+        let merged = [...rankedListings]
+        if (merged.length < FEATURED_COUNT) {
+          const fallbackSnapshot = await getDocs(query(collection(db, "listings"), limit(30)))
+          const fallbackListings = fallbackSnapshot.docs
+            .map((doc) => mapListingFromDoc(doc.id, doc.data()))
+            .filter((listing) => isApartmentOnlyTitle(listing.title))
+
+          const existingIds = new Set(merged.map((listing) => listing.id))
+          for (const listing of fallbackListings) {
+            if (existingIds.has(listing.id)) {
+              continue
+            }
+            merged.push(listing)
+            existingIds.add(listing.id)
+          }
+        }
+
+        const featured = merged
+          .sort((a, b) => b.clicks - a.clicks)
+          .slice(0, FEATURED_COUNT)
+
+        setFeaturedListings(featured)
+      } catch (error) {
+        console.error("Failed to load featured listings:", error)
+        setFeaturedError("Could not load featured properties.")
+      } finally {
+        setLoadingFeatured(false)
+      }
+    }
+
+    void loadFeaturedListings()
+  }, [])
+
 	return (
 		<div className="min-h-screen bg-[#f5f5f0] text-[#1f1f1f] font-['Space_Grotesk']">
 			<Header />
@@ -54,46 +99,120 @@ const Home = () => {
 			<section className="mx-auto mt-16 max-w-6xl px-6 pb-16">
 				<div className="text-center">
 					<p className="text-sm uppercase tracking-[0.3em] text-gray-500">Featured properties</p>
-					<h2 className="mt-2 text-3xl font-semibold text-[#1f1f1f]">Gran Canaria</h2>
+					<h2 className="mt-2 text-3xl font-semibold text-[#1f1f1f]">Featured Properties – Gran Canaria</h2>
 				</div>
-				<div className="mt-10 grid gap-8 md:grid-cols-3">
-					{featuredProperties.map((property) => (
-						<article
-							key={property.id}
-							onClick={() => setSelectedProperty(property)}
-							className="rounded-[34px] border border-black/5 bg-white shadow-sm cursor-pointer hover:shadow-md transition"
-						>
-							<div className="rounded-t-[34px] bg-gray-200 p-4">
-								<div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-[#3f37f0]">
-									<span>{property.tag}</span>
-									<span>›</span>
-								</div>
-								<div className="mt-16 h-28 rounded-2xl bg-gradient-to-b from-gray-200 to-gray-300" />
-							</div>
-							<div className="rounded-b-[34px] bg-[#047857] px-6 py-6 text-white">
-								<p className="text-lg font-semibold">{property.title}</p>
-								<p className="text-sm text-white/80">{property.location}</p>
-								<p className="mt-4 text-xl font-semibold">€{property.price.toLocaleString()}/mo</p>
-							</div>
-						</article>
-					))}
-				</div>
+
+        {loadingFeatured ? (
+          <div className="mt-10 rounded-3xl border border-black/5 bg-white p-8 text-center shadow-sm">
+            Loading featured properties...
+          </div>
+        ) : featuredError ? (
+          <div className="mt-10 rounded-3xl border border-red-200 bg-red-50 p-8 text-center text-red-700 shadow-sm">
+            {featuredError}
+          </div>
+        ) : featuredListings.length === 0 ? (
+          <div className="mt-10 rounded-3xl border border-black/5 bg-white p-8 text-center shadow-sm">
+            No featured properties yet.
+          </div>
+        ) : (
+          <div className="mt-10 grid gap-8 md:grid-cols-3">
+            {featuredListings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        )}
 				<div className="mt-12 flex justify-center">
 					<div className="h-1 w-36 rounded-full bg-gray-300" />
 				</div>
 			</section>
 		</main>
 
-		{selectedProperty && (
-			<PropertyModal
-				property={selectedProperty}
-				onClose={() => setSelectedProperty(null)}
-			/>
-		)}
-
 		<Footer />
 		</div>
 	)
+}
+
+const mapListingFromDoc = (id: string, data: Record<string, unknown>): FeaturedListing => {
+  return {
+    id,
+    title: readString(data.title) || "Untitled listing",
+    price: parsePrice(data.price),
+    currency: readString(data.currency) || "€",
+    bedrooms: readNullableNumber(data.bedrooms),
+    area: readNullableNumber(data.area),
+    image: readString(data.image),
+    url: readString(data.url),
+    clicks: readNumberWithDefault(data.clicks, 0),
+  }
+}
+
+const readString = (value: unknown) => (typeof value === "string" ? value : "")
+
+const readNullableNumber = (value: unknown) => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null
+  }
+  if (typeof value !== "string") {
+    return null
+  }
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const readNumberWithDefault = (value: unknown, fallback: number) => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : fallback
+  }
+  if (typeof value !== "string") {
+    return fallback
+  }
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+const parsePrice = (value: unknown): number | null => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? Math.round(value) : null
+  }
+
+  if (typeof value !== "string") {
+    return null
+  }
+
+  const cleaned = value
+    .toLowerCase()
+    .replace(/\/\s*month|per\s*month|monthly|\/\s*mes|al\s*mes/g, "")
+    .replace(/[^\d.,]/g, "")
+    .trim()
+
+  if (!cleaned) {
+    return null
+  }
+
+  const digits = cleaned.replace(/[.,]/g, "")
+  if (!digits) {
+    return null
+  }
+
+  const parsed = Number.parseInt(digits, 10)
+  return Number.isNaN(parsed) ? null : parsed
+}
+
+const isApartmentOnlyTitle = (title: string) => {
+  if (!title) {
+    return false
+  }
+
+  const normalized = title.toLowerCase()
+  const includesApartmentType = normalized.includes("flat") || normalized.includes("apartment")
+  const excludedType =
+    normalized.includes("house") ||
+    normalized.includes("villa") ||
+    normalized.includes("chalet") ||
+    normalized.includes("detached") ||
+    normalized.includes("semi-detached")
+
+  return includesApartmentType && !excludedType
 }
 
 export default Home
