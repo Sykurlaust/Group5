@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 
 type Property = {
   id: number
@@ -18,6 +18,8 @@ export default function PropertyModal({
   onClose: () => void
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const mapQuery = encodeURIComponent(`${property.location}, ${property.municipality}`)
+  const mapLink = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`
   const images = property.images || [
     "https://via.placeholder.com/600x400?text=Property+Image+1",
     "https://via.placeholder.com/600x400?text=Property+Image+2",
@@ -119,11 +121,18 @@ export default function PropertyModal({
           <h2 className="text-2xl font-bold text-gray-900">{property.title}</h2>
 
           {/* Location & Municipality */}
-          <div className="mt-2 flex items-center gap-2 text-gray-600">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-gray-600">
             <svg className="w-5 h-5 text-[#047857]" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
             </svg>
-            <span className="font-medium">{property.location}</span>
+            <a
+              href={mapLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-[#047857] underline underline-offset-2"
+            >
+              {property.location}
+            </a>
             <span className="text-gray-400">•</span>
             <span className="text-gray-500">{property.municipality}</span>
           </div>

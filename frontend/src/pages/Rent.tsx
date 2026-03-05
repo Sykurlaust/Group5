@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react"
 import type { ChangeEvent, FormEvent } from "react"
+import { onAuthStateChanged, type User } from "firebase/auth"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 import PropertyModal from "../components/PropertyModal"
 import AccountRequiredModal from "../components/AccountRequiredModal"
+import { auth } from "../services/firebase"
+
 
 type MunicipalityConfig = {
 	name: string
@@ -18,6 +21,15 @@ const propertyTypes = [
 	"Rural house",
 	"Studio",
 ]
+
+const imageQueries: Record<string, string> = {
+	"Apartment": "apartment,building,architecture",
+	"Penthouse": "penthouse,roof,architecture",
+	"Villa": "villa,house,architecture",
+	"Townhouse": "townhouse,building",
+	"Rural house": "rural,house,architecture",
+	"Studio": "studio,apartment,building",
+}
 
 const municipalities: MunicipalityConfig[] = [
 	{
@@ -58,9 +70,6 @@ const initialFilters: FilterState = {
 	maxPrice: "",
 }
 
-// Toggle to keep using placeholder data until the backend API is available.
-const USE_PLACEHOLDERS = true
-
 type Property = {
 	id: number
 	title: string
@@ -68,57 +77,21 @@ type Property = {
 	municipality: string
 	location: string
 	price: number
+	images: string[]
 }
 
-const Carousel = ({ items }: { items?: Property[] }) => {
-	// If `items` is provided we use that as the data source (filtered from parent).
-	// Otherwise fall back to internal properties (legacy placeholder) — keep backwards compat.
-	const [internalProperties, setInternalProperties] = useState<Property[]>(() =>
-		Array.from({ length: 18 }).map((_, i) => {
-			const muni = municipalities[i % municipalities.length]
-			const loc = muni.locations[i % muni.locations.length]
-			return {
-				id: i,
-				title: `Beautiful home #${i + 1}`,
-				type: propertyTypes[i % propertyTypes.length],
-				municipality: muni.name,
-				location: loc,
-				price: 500 + (i % 10) * 100,
-			}
-		})
-	)
+type CarouselProps = {
+	items?: Property[]
+	isLoggedIn: boolean
+	onRequireAccount: () => void
+}
 
+const Carousel = ({ items, isLoggedIn, onRequireAccount }: CarouselProps) => {
 	const ITEMS_PER_SLIDE = 6
 	const [slideIdx, setSlideIdx] = useState(0)
 
-	// placeholder fetch only used when parent doesn't provide items
-	useEffect(() => {
-		if (items) return
-		let mounted = true
-		const fetchPlaceholder = async () => {
-			await new Promise((r) => setTimeout(r, 700))
-			const data: Property[] = Array.from({ length: 18 }).map((_, i) => {
-				const muni = municipalities[i % municipalities.length]
-				const loc = muni.locations[i % muni.locations.length]
-				return {
-					id: i,
-					title: `Fetched home #${i + 1}`,
-					type: propertyTypes[i % propertyTypes.length],
-					municipality: muni.name,
-					location: loc,
-					price: 500 + (i % 10) * 100,
-				}
-			})
-			if (mounted) setInternalProperties(data)
-		}
-		fetchPlaceholder()
-		return () => {
-			mounted = false
-		}
-	}, [items])
-
 	// determine data source
-	const properties = items ?? internalProperties
+	const properties = items || []
 
 	const slides = Math.max(1, Math.ceil(properties.length / ITEMS_PER_SLIDE))
 
@@ -138,15 +111,12 @@ const Carousel = ({ items }: { items?: Property[] }) => {
 
 	const [selected, setSelected] = useState<Property | null>(null)
 
-	// favorites and auth UI (placeholder — integrate real auth as needed)
-	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
 	const [favorites, setFavorites] = useState<number[]>([])
-	const [showAuthModal, setShowAuthModal] = useState(false)
 
 	const toggleFavorite = (p: Property, e?: any) => {
 		if (e) e.stopPropagation()
 		if (!isLoggedIn) {
-			setShowAuthModal(true)
+			onRequireAccount()
 			return
 		}
 		setFavorites((prev) => (prev.includes(p.id) ? prev.filter((id) => id !== p.id) : [...prev, p.id]))
@@ -169,13 +139,13 @@ const Carousel = ({ items }: { items?: Property[] }) => {
 					{currentItems.map((p) => (
 						<article
 							key={p.id}
-							className="relative group rounded-[34px] border border-black/5 bg-white shadow-sm overflow-hidden cursor-pointer transition hover:-translate-y-1 hover:shadow-[0_16px_50px_rgba(0,0,0,0.08)]"
+							className="relative group rounded-[34px] border border-black/5 bg-white shadow-sm overflow-hidden cursor-pointer transition hover:-translate-y-1 hover:shadow-[0_16px_50px_rgba(0,0,0,0.08)] h-[340px] flex flex-col"
 							onClick={() => setSelected(p)}
 						>
 							<button
 								onClick={(e) => toggleFavorite(p, e)}
 								aria-label={isFavorited(p.id) ? "Remove favorite" : "Add favorite"}
-								className="absolute right-4 top-4 z-20 rounded-full bg-white/90 p-2 text-gray-600 shadow-sm hover:scale-105 transition"
+								className="absolute right-4 top-4 z-30 rounded-full bg-white/90 p-2 text-gray-600 shadow-sm hover:scale-105 transition"
 							>
 								{isFavorited(p.id) ? (
 									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5 text-yellow-400" fill="currentColor">
@@ -188,20 +158,18 @@ const Carousel = ({ items }: { items?: Property[] }) => {
 								)}
 							</button>
 							{/* Top visual area */}
-							<div className="rounded-t-[34px] bg-gray-200 p-4">
-								<div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-[#3f37f0]">
+							<div className="relative flex-1 min-h-[200px] rounded-t-[34px] overflow-hidden">
+								<img src={p.images[0]} alt={p.title} className="h-full w-full object-cover" />
+								<div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 py-3 pr-12 text-xs font-semibold uppercase tracking-[0.3em] text-white bg-gradient-to-b from-black/60 to-transparent">
 									<span>For rent</span>
 									<span>›</span>
 								</div>
-								<div className="mt-6 h-28 rounded-2xl bg-gradient-to-b from-gray-200 to-gray-300 flex items-center justify-center text-lg font-semibold text-gray-900">
-									{p.title}
-								</div>
 							</div>
 							{/* Footer */}
-							<div className="rounded-b-[34px] bg-[#047857] px-6 py-4 text-white">
-								<p className="text-lg font-semibold">{p.title}</p>
-								<p className="text-sm text-white/80">{p.location}</p>
-								<p className="mt-3 text-xl font-semibold">€{p.price}/month</p>
+							<div className="rounded-b-[34px] bg-[#047857] px-6 py-5 text-white min-h-[120px] flex flex-col justify-between">
+								<p className="text-lg font-semibold truncate">{p.title}</p>
+								<p className="text-sm text-white/80 truncate">{p.location}</p>
+								<p className="text-2xl font-semibold">€{p.price}/month</p>
 							</div>
 						</article>
 					))}
@@ -209,7 +177,7 @@ const Carousel = ({ items }: { items?: Property[] }) => {
 					{Array.from({ length: Math.max(0, ITEMS_PER_SLIDE - currentItems.length) }).map((_, i) => (
 						<div
 							key={`empty-${i}`}
-							className="group rounded-[34px] border border-dashed border-gray-200 bg-white shadow-sm flex flex-col items-center justify-center p-6 text-center"
+							className="group rounded-[34px] border border-dashed border-gray-200 bg-white shadow-sm flex flex-col items-center justify-center p-6 text-center h-[340px]"
 						>
 							<svg
 								className="w-12 h-12 text-gray-300 mb-3"
@@ -244,33 +212,64 @@ const Carousel = ({ items }: { items?: Property[] }) => {
 			</div>
 
 			{selected && <PropertyModal property={selected} onClose={() => setSelected(null)} />}
-			{showAuthModal && <AccountRequiredModal onClose={() => setShowAuthModal(false)} />}
 		</div>
 	)
 }
 
+// Generate 150 properties covering various combinations
+const generateProperties = (): Property[] => {
+	const properties: Property[] = []
+	let id = 0
+	const priceBases = [550, 650, 850, 1050, 1250, 1450] // bases for different ranges
+
+	for (let i = 0; i < 150; i++) {
+		const typeIdx = i % propertyTypes.length
+		const muniIdx = Math.floor(i / propertyTypes.length) % municipalities.length
+		const muni = municipalities[muniIdx]
+		const locIdx = Math.floor(i / (propertyTypes.length * municipalities.length)) % muni.locations.length
+		const loc = muni.locations[locIdx]
+		const priceBaseIdx = i % priceBases.length
+		const price = priceBases[priceBaseIdx]
+
+		properties.push({
+			id: id++,
+			title: `${propertyTypes[typeIdx]} in ${loc}, ${muni.name}`,
+			type: propertyTypes[typeIdx],
+			municipality: muni.name,
+			location: loc,
+			price: price,
+			images: [
+				`https://loremflickr.com/400/300/${imageQueries[propertyTypes[typeIdx]]}?random=${id * 3}`,
+				`https://loremflickr.com/400/300/${imageQueries[propertyTypes[typeIdx]]}?random=${id * 3 + 1}`,
+				`https://loremflickr.com/400/300/${imageQueries[propertyTypes[typeIdx]]}?random=${id * 3 + 2}`,
+			],
+		})
+	}
+	return properties
+}
+
 const Rent = () => {
+	const [user, setUser] = useState<User | null>(auth.currentUser)
+	const [showAccountModal, setShowAccountModal] = useState(false)
 	const [filterValues, setFilterValues] = useState<FilterState>(() => ({ ...initialFilters }))
 	// all properties from backend / placeholders
-	const [allProperties, setAllProperties] = useState<Property[]>(() =>
-		USE_PLACEHOLDERS
-			? Array.from({ length: 18 }).map((_, i) => {
-				const muni = municipalities[i % municipalities.length]
-				const loc = muni.locations[i % muni.locations.length]
-				return {
-					id: i,
-					title: `Placeholder home #${i + 1}`,
-					type: propertyTypes[i % propertyTypes.length],
-					municipality: muni.name,
-					location: loc,
-					price: 500 + (i % 10) * 100,
-				}
-			  })
-			: []
-	)
+	const allProperties = generateProperties()
 	const [displayProperties, setDisplayProperties] = useState<Property[]>(allProperties)
 	const selectedMunicipality =
 		municipalities.find((entry) => entry.name === filterValues.municipality) ?? null
+
+	useEffect(() => {
+		const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+			setUser(firebaseUser)
+		})
+		return unsubscribe
+	}, [])
+
+	useEffect(() => {
+		if (user) {
+			setShowAccountModal(false)
+		}
+	}, [user])
 
 	useEffect(() => {
 		if (!selectedMunicipality) return
@@ -325,36 +324,6 @@ const Rent = () => {
 		const filtered = allProperties.filter((p) => matchesFilters(p, filterValues))
 		setDisplayProperties(filtered)
 	}
-
-	// simulate fetching real data (placeholder) on mount; replace data and keep current filter behavior
-	useEffect(() => {
-		if (!USE_PLACEHOLDERS) {
-			let mounted = true
-			const fetchPlaceholder = async () => {
-				await new Promise((r) => setTimeout(r, 700))
-				const data: Property[] = Array.from({ length: 18 }).map((_, i) => {
-					const muni = municipalities[i % municipalities.length]
-					const loc = muni.locations[i % muni.locations.length]
-					return {
-						id: i,
-						title: `Fetched home #${i + 1}`,
-						type: propertyTypes[i % propertyTypes.length],
-						municipality: muni.name,
-						location: loc,
-						price: 500 + (i % 10) * 100,
-					}
-				})
-				if (mounted) {
-					setAllProperties(data)
-					setDisplayProperties(data)
-				}
-			}
-			fetchPlaceholder()
-			return () => {
-				mounted = false
-			}
-		}
-	}, [])
 
 	return (
 		<div className="min-h-screen bg-[#f5f5f0] text-[#1f1f1f] font-['Space_Grotesk']">
@@ -466,11 +435,16 @@ const Rent = () => {
 					</div>
 
 					{/* Carousel: shows one property at a time with wrap-around arrows */}
-					<Carousel items={displayProperties} />
+					<Carousel
+						items={displayProperties}
+						isLoggedIn={Boolean(user)}
+						onRequireAccount={() => setShowAccountModal(true)}
+					/>
 				</section>
 			</main>
 
 			<Footer />
+			{showAccountModal && <AccountRequiredModal onClose={() => setShowAccountModal(false)} />}
 		</div>
 	)
 }
