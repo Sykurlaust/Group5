@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local tool caches
+.firebase/
+.vite/
+
+# Firebase importer secrets/data
+scripts/serviceAccountKey.json
+scripts/csvjson.json
+scripts/csvjson.source.html
