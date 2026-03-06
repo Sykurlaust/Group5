@@ -179,10 +179,11 @@ const Rent = () => {
             onSubmit={handleSubmitFilters}
           >
             <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
-              <label className="space-y-2 text-sm font-semibold text-gray-500">
-                Property type
+              <div className="space-y-2">
+                <label htmlFor="propertyType" className="text-sm font-semibold text-gray-500">Property type</label>
                 <div className="relative rounded-[18px] border border-black/10">
                   <select
+                    id="propertyType"
                     className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("propertyType")}
                     value={filterValues.propertyType}
@@ -198,12 +199,13 @@ const Rent = () => {
                     ⌄
                   </span>
                 </div>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm font-semibold text-gray-500">
-                Municipality
+              <div className="space-y-2">
+                <label htmlFor="municipality" className="text-sm font-semibold text-gray-500">Municipality</label>
                 <div className="relative rounded-[18px] border border-black/10">
                   <select
+                    id="municipality"
                     className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("municipality")}
                     value={filterValues.municipality}
@@ -219,12 +221,13 @@ const Rent = () => {
                     ⌄
                   </span>
                 </div>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm font-semibold text-gray-500">
-                Location
+              <div className="space-y-2">
+                <label htmlFor="location" className="text-sm font-semibold text-gray-500">Location</label>
                 <div className="relative rounded-[18px] border border-black/10">
                   <select
+                    id="location"
                     className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("location")}
                     value={filterValues.location}
@@ -240,12 +243,13 @@ const Rent = () => {
                     ⌄
                   </span>
                 </div>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm font-semibold text-gray-500">
-                Max. Price
+              <div className="space-y-2">
+                <label htmlFor="maxPrice" className="text-sm font-semibold text-gray-500">Max. Price</label>
                 <div className="relative rounded-[18px] border border-black/10">
                   <select
+                    id="maxPrice"
                     className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("maxPrice")}
                     value={filterValues.maxPrice}
@@ -261,12 +265,13 @@ const Rent = () => {
                     ⌄
                   </span>
                 </div>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm font-semibold text-gray-500">
-                Sort by price
+              <div className="space-y-2">
+                <label htmlFor="sortOrder" className="text-sm font-semibold text-gray-500">Sort by price</label>
                 <div className="relative rounded-[18px] border border-black/10">
                   <select
+                    id="sortOrder"
                     className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("sortOrder")}
                     value={filterValues.sortOrder}
@@ -279,7 +284,7 @@ const Rent = () => {
                     ⌄
                   </span>
                 </div>
-              </label>
+              </div>
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-end gap-4">
