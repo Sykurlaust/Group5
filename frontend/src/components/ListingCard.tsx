@@ -1,4 +1,4 @@
-import type { CSSProperties, KeyboardEvent } from "react"
+import type { CSSProperties, MouseEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { incrementListingClicks } from "../lib/listingClicks"
 
@@ -33,11 +33,9 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
     navigate(`/listings/${listing.id}`)
   }
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault()
-      handleOpenDetail()
-    }
+  const handleViewClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    handleOpenDetail()
   }
 
   const titleText = listing.title || "Untitled listing"
@@ -49,15 +47,7 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
       : `${listing.currency || "€"}${listing.price.toLocaleString()}/month`
 
   return (
-    <article
-      className={`h-[430px] overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${
-        canOpenDetail ? "cursor-pointer" : "cursor-default"
-      }`}
-      onClick={handleOpenDetail}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={0}
-    >
+    <article className="h-[430px] overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <div className="relative h-56 w-full bg-gray-200">
         {listing.image ? (
           <img
@@ -93,9 +83,14 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
 
         <div className="mt-auto flex items-center justify-between">
           <p className="text-lg font-semibold text-[#047857]">{priceText}</p>
-          <span className="rounded-full border border-[#047857] px-3 py-1 text-xs font-semibold text-[#047857]">
+          <button
+            className="inline-flex items-center justify-center rounded-full border border-emerald-700 bg-white px-6 py-2 text-xs font-semibold text-emerald-700 transition-colors duration-200 hover:bg-emerald-700 hover:text-white"
+            disabled={!canOpenDetail}
+            onClick={handleViewClick}
+            type="button"
+          >
             View
-          </span>
+          </button>
         </div>
       </div>
     </article>
