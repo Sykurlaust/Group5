@@ -123,7 +123,7 @@ const AboutUs: React.FC = () => {
 								<div className="rounded-[30px] overflow-hidden mb-4 shadow-md group-hover:shadow-lg transition-shadow">
 									<img
 										src={member.image}
-										alt={member.name}
+										alt=""
 										className="w-full h-64 object-cover"
 									/>
 								</div>
