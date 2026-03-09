@@ -195,12 +195,16 @@ const Rent = () => {
             className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:p-6"
             onSubmit={handleSubmitFilters}
           >
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
-              <label className="space-y-2 text-sm font-semibold text-gray-500">
-                Property type
-                <div className="relative rounded-[18px] border border-black/10">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+              <label className="space-y-2 text-sm font-medium text-gray-600">
+                <span>Property type</span>
+                <div className="relative">
+                  <Building2
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  />
                   <select
-                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
+                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-11 pr-10 text-sm text-gray-700 transition hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                     onChange={handleSelectChange("propertyType")}
                     value={filterValues.propertyType}
                   >
@@ -213,16 +217,20 @@ const Rent = () => {
                   </select>
                   <ChevronDown
                     aria-hidden="true"
-                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                    className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                   />
                 </div>
-              </div>
+              </label>
 
-              <label className="space-y-2 text-sm font-semibold text-gray-500">
-                Municipality
-                <div className="relative rounded-[18px] border border-black/10">
+              <label className="space-y-2 text-sm font-medium text-gray-600">
+                <span>Municipality</span>
+                <div className="relative">
+                  <MapPin
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  />
                   <select
-                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
+                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-11 pr-10 text-sm text-gray-700 transition hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                     onChange={handleSelectChange("municipality")}
                     value={filterValues.municipality}
                   >
@@ -235,16 +243,20 @@ const Rent = () => {
                   </select>
                   <ChevronDown
                     aria-hidden="true"
-                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                    className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                   />
                 </div>
-              </div>
+              </label>
 
-              <label className="space-y-2 text-sm font-semibold text-gray-500">
-                Location
-                <div className="relative rounded-[18px] border border-black/10">
+              <label className="space-y-2 text-sm font-medium text-gray-600">
+                <span>Location</span>
+                <div className="relative">
+                  <MapPin
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  />
                   <select
-                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
+                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-11 pr-10 text-sm text-gray-700 transition hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                     onChange={handleSelectChange("location")}
                     value={filterValues.location}
                   >
@@ -257,16 +269,20 @@ const Rent = () => {
                   </select>
                   <ChevronDown
                     aria-hidden="true"
-                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                    className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                   />
                 </div>
-              </div>
+              </label>
 
-              <label className="space-y-2 text-sm font-semibold text-gray-500">
-                Max. Price
-                <div className="relative rounded-[18px] border border-black/10">
+              <label className="space-y-2 text-sm font-medium text-gray-600">
+                <span>Max. Price</span>
+                <div className="relative">
+                  <Euro
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  />
                   <select
-                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
+                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-11 pr-10 text-sm text-gray-700 transition hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                     onChange={handleSelectChange("maxPrice")}
                     value={filterValues.maxPrice}
                   >
@@ -279,16 +295,20 @@ const Rent = () => {
                   </select>
                   <ChevronDown
                     aria-hidden="true"
-                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                    className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                   />
                 </div>
-              </div>
+              </label>
 
-              <label className="space-y-2 text-sm font-semibold text-gray-500">
-                Sort by price
-                <div className="relative rounded-[18px] border border-black/10">
+              <label className="space-y-2 text-sm font-medium text-gray-600">
+                <span>Sort by price</span>
+                <div className="relative">
+                  <ArrowUpDown
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  />
                   <select
-                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
+                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-11 pr-10 text-sm text-gray-700 transition hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                     onChange={handleSelectChange("sortOrder")}
                     value={filterValues.sortOrder}
                   >
@@ -298,15 +318,15 @@ const Rent = () => {
                   </select>
                   <ChevronDown
                     aria-hidden="true"
-                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                    className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                   />
                 </div>
-              </div>
+              </label>
             </div>
 
-            <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+            <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-gray-100 pt-4">
               <button
-                className="inline-flex h-12 items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
+                className="inline-flex h-12 items-center rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
                 onClick={handleResetFilters}
                 type="button"
               >
