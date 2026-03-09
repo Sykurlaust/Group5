@@ -195,16 +195,12 @@ const Rent = () => {
             className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:p-6"
             onSubmit={handleSubmitFilters}
           >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-              <label className="space-y-2 text-sm font-medium text-gray-600">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
                 Property type
-                <div className="relative">
-                  <Building2
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+                <div className="relative rounded-[18px] border border-black/10">
                   <select
-                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-700 transition-colors hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("propertyType")}
                     value={filterValues.propertyType}
                   >
@@ -220,17 +216,13 @@ const Rent = () => {
                     className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                   />
                 </div>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm font-medium text-gray-600">
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
                 Municipality
-                <div className="relative">
-                  <MapPin
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+                <div className="relative rounded-[18px] border border-black/10">
                   <select
-                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-700 transition-colors hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("municipality")}
                     value={filterValues.municipality}
                   >
@@ -246,17 +238,13 @@ const Rent = () => {
                     className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                   />
                 </div>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm font-medium text-gray-600">
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
                 Location
-                <div className="relative">
-                  <MapPin
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+                <div className="relative rounded-[18px] border border-black/10">
                   <select
-                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-700 transition-colors hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("location")}
                     value={filterValues.location}
                   >
@@ -272,17 +260,13 @@ const Rent = () => {
                     className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                   />
                 </div>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm font-medium text-gray-600">
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
                 Max. Price
-                <div className="relative">
-                  <Euro
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+                <div className="relative rounded-[18px] border border-black/10">
                   <select
-                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-700 transition-colors hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("maxPrice")}
                     value={filterValues.maxPrice}
                   >
@@ -298,17 +282,13 @@ const Rent = () => {
                     className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                   />
                 </div>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm font-medium text-gray-600">
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
                 Sort by price
-                <div className="relative">
-                  <ArrowUpDown
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+                <div className="relative rounded-[18px] border border-black/10">
                   <select
-                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-700 transition-colors hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("sortOrder")}
                     value={filterValues.sortOrder}
                   >
@@ -321,7 +301,7 @@ const Rent = () => {
                     className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                   />
                 </div>
-              </label>
+              </div>
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
