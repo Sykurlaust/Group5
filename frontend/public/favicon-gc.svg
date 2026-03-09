@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GC Rentals favicon">
+  <defs>
+    <linearGradient id="gcFavRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7EE7FF"/>
+      <stop offset="45%" stop-color="#2A8DEB"/>
+      <stop offset="100%" stop-color="#1C4ED8"/>
+    </linearGradient>
+    <linearGradient id="gcFavRight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#BDEBFF"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M5 47 L32 41 L60 46 L32 58 Z" fill="#2A8DEB" opacity="0.9"/>
+  <path d="M7 52 L32 47 L57 50 L32 61 Z" fill="#1C4ED8" opacity="0.88"/>
+
+  <polygon points="8,35 32,14 56,35 49,35 32,20 15,35" fill="url(#gcFavRoof)"/>
+  <rect x="20" y="23" width="3.8" height="9" fill="url(#gcFavRoof)"/>
+
+  <polygon points="12,35 32,20 32,51 12,46" fill="#1C4ED8"/>
+  <polygon points="32,20 52,35 52,48 32,51" fill="url(#gcFavRight)"/>
+  <polygon points="32,51 52,48 32,55 12,46" fill="#1C4ED8"/>
+
+  <rect x="39" y="38" width="6.8" height="13.2" rx="1.1" fill="#2A8DEB"/>
+
+  <rect x="16.4" y="39.2" width="4.2" height="4.2" fill="#FFFFFF" opacity="0.95"/>
+  <rect x="21.8" y="39.2" width="4.2" height="4.2" fill="#FFFFFF" opacity="0.95"/>
+  <rect x="16.4" y="44.6" width="4.2" height="4.2" fill="#FFFFFF" opacity="0.95"/>
+  <rect x="21.8" y="44.6" width="4.2" height="4.2" fill="#FFFFFF" opacity="0.95"/>
+</svg>
