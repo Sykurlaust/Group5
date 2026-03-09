@@ -1,26 +1,28 @@
 import React from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import lukasImage from '../assets/lukasface/Lukasface.png'
 
 const AboutUs: React.FC = () => {
 	const teamMembers = [
 		{
-			name: 'María García',
+			name: 'Emily',
 			role: 'CEO & Founder',
 			image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80'
 		},
 		{
-			name: 'Carlos Rodríguez',
+			name: 'Diogo',
 			role: 'Head of Operations',
 			image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
 		},
 		{
-			name: 'Ana Martínez',
-			role: 'Property Manager',
-			image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=400&q=80'
-		},
+		
+	name: 'Lukas',
+	role: 'Property Manager',
+	image: lukasImage
+},
 		{
-			name: 'Juan López',
+			name: 'Angel',
 			role: 'Customer Relations',
 			image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80'
 		}
