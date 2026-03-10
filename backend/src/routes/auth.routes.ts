@@ -4,7 +4,7 @@ import { register, getMe, updateMe } from "../controllers/auth.controller.js"
 
 const router = Router()
 
-router.post("/register", authenticate, register)
+router.post("/register", register)
 router.get("/me", authenticate, getMe)
 router.put("/me", authenticate, updateMe)
 
