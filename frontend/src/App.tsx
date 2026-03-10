@@ -11,6 +11,7 @@ import Home from "./pages/Home"
 import ListingDetail from "./pages/ListingDetail"
 import Listings from "./pages/Listings"
 import Login from "./pages/loginpage"
+import MessagesPage from "./pages/MessagesPage"
 import Privacy from "./pages/Privacy"
 import Rent from "./pages/Rent"
 import Signup from "./pages/signuppage"
@@ -33,6 +34,7 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
+        <Route path="/messages" element={<MessagesPage />} />
 
         <Route
           path="/dashboard"
