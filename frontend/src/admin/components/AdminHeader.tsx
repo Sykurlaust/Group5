@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom"
 import { useAdminSidebar } from "../context/AdminSidebarContext"
-import DateRangeInput from "./DateRangeInput"
 
 const AdminHeader = () => {
   const { toggleSidebar } = useAdminSidebar()
@@ -19,16 +18,13 @@ const AdminHeader = () => {
             </button>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#047857]">
-                Dashboard
+                Account
               </p>
-              <p className="text-lg font-semibold text-[#1f1f1f]">Admin Overview</p>
+              <p className="text-lg font-semibold text-[#1f1f1f]">Favorited</p>
             </div>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="w-full sm:w-64">
-              <DateRangeInput />
-            </div>
             <Link
               className="rounded-full bg-[#047857] px-4 py-2 text-center text-sm font-semibold text-white shadow-md shadow-[#047857]/30 transition hover:bg-[#036c50]"
               to="/home"

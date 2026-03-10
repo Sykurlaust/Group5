@@ -1,18 +1,20 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
-import AppLayout from "./admin/layout/AppLayout"
-import LandlordDashboard from "./admin/pages/LandlordDashboard"
 import RenterDashboard from "./admin/pages/RenterDashboard"
 import ScrollToTop from "./components/ScrollToTop"
 import RequireAuth from "./components/RequireAuth"
+import Account from "./pages/Account"
 import AboutUs from "./pages/AboutUs"
+import Apply from "./pages/Apply"
 import Contact from "./pages/Contact"
 import DataDeletion from "./pages/DataDeletion"
 import Home from "./pages/Home"
 import ListingDetail from "./pages/ListingDetail"
 import Listings from "./pages/Listings"
 import Login from "./pages/loginpage"
+import Messages from "./pages/Messages"
 import Privacy from "./pages/Privacy"
 import Rent from "./pages/Rent"
+import Settings from "./pages/Settings"
 import Signup from "./pages/signuppage"
 import Terms from "./pages/Terms"
 
@@ -35,17 +37,48 @@ function App() {
         <Route path="/data-deletion" element={<DataDeletion />} />
 
         <Route
-          path="/dashboard"
+          path="/favorited"
           element={
             <RequireAuth>
-              <AppLayout />
+              <RenterDashboard />
             </RequireAuth>
           }
-        >
-          <Route index element={<Navigate replace to="/dashboard/renter" />} />
-          <Route path="renter" element={<RenterDashboard />} />
-          <Route path="landlord" element={<LandlordDashboard />} />
-        </Route>
+        />
+        <Route
+          path="/messages"
+          element={
+            <RequireAuth>
+              <Messages />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/apply"
+          element={
+            <RequireAuth>
+              <Apply />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <RequireAuth>
+              <Account />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <RequireAuth>
+              <Settings />
+            </RequireAuth>
+          }
+        />
+
+        <Route path="/dashboard" element={<Navigate replace to="/favorited" />} />
+        <Route path="/dashboard/favorited" element={<Navigate replace to="/favorited" />} />
       </Routes>
     </BrowserRouter>
   )

@@ -1,14 +1,21 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 
 const Contact = () => {
+	const [searchParams] = useSearchParams()
+	const requestedSubject = searchParams.get('subject')
+	const initialSubject = requestedSubject === 'general' || requestedSubject === 'rental' || requestedSubject === 'support' || requestedSubject === 'other'
+		? requestedSubject
+		: 'general'
+
 	const [formData, setFormData] = useState({
 		firstName: '',
 		lastName: '',
 		email: '',
 		phone: '',
-		subject: 'general',
+		subject: initialSubject,
 		message: ''
 	})
 
