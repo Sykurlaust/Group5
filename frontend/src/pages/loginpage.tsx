@@ -1,40 +1,91 @@
-import { signInWithPopup } from "firebase/auth"
-import { Link } from "react-router-dom"
+import { FirebaseError } from "firebase/app"
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
+import { Link, useNavigate } from "react-router-dom"
 import { auth, googleProvider, facebookProvider } from "../services/firebase"
 import PageLayout from "../components/PageLayout"
 import AuthPanel from "../components/AuthPanel"
 import FormInput from "../components/FormInput"
 import SocialAuthButtons from "../components/SocialAuthButtons"
 import Button from "../components/Button"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import type { FormEvent } from "react"
+import { useAuth } from "../context/AuthContext"
 
 const loginFeatures = ["Save favourites", "Contact landlords", "Get verified (MVP later)"]
 
 const Login = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const { firebaseUser, loading: authLoading } = useAuth()
+
+  useEffect(() => {
+    if (!authLoading && firebaseUser) {
+      navigate("/home", { replace: true })
+    }
+  }, [authLoading, firebaseUser, navigate])
+
+  const isBusy = isProcessing || authLoading
+
+  const getReadableError = (error: unknown): string => {
+    if (error instanceof FirebaseError) {
+      switch (error.code) {
+        case "auth/invalid-credential":
+        case "auth/wrong-password":
+          return "Incorrect email or password."
+        case "auth/user-not-found":
+          return "No account found with that email."
+        case "auth/invalid-email":
+          return "Please enter a valid email address."
+        case "auth/popup-closed-by-user":
+          return "Login popup was closed before completing."
+        default:
+          return "Authentication failed. Please try again."
+      }
+    }
+    return "Something went wrong. Please try again."
+  }
+
+  const handleEmailLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsProcessing(true)
+    setAuthError(null)
+
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password)
+      setEmail("")
+      setPassword("")
+    } catch (error) {
+      setAuthError(getReadableError(error))
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   const handleGoogleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider)
-      console.log("Logged in user:", result.user)
+      setIsProcessing(true)
+      setAuthError(null)
+      await signInWithPopup(auth, googleProvider)
     } catch (error) {
-      console.error("Google login error:", error)
+      setAuthError(getReadableError(error))
+    } finally {
+      setIsProcessing(false)
     }
   }
 
   const handleFacebookLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, facebookProvider)
-      console.log("Facebook user:", result.user)
+      setIsProcessing(true)
+      setAuthError(null)
+      await signInWithPopup(auth, facebookProvider)
     } catch (error) {
-      console.error("Facebook login error:", error)
+      setAuthError(getReadableError(error))
+    } finally {
+      setIsProcessing(false)
     }
-  }
-
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log({ email, password })
   }
 
   return (
@@ -52,7 +103,13 @@ const Login = () => {
             <h2 className="text-2xl font-semibold text-[#1f1f1f]">Log in</h2>
             <p className="mt-2 text-sm text-gray-500">Use your email and password.</p>
 
-            <form className="mt-8 space-y-5" onSubmit={onSubmit}>
+            {authError && (
+              <div className="mt-6 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {authError}
+              </div>
+            )}
+
+            <form className="mt-8 space-y-5" onSubmit={handleEmailLogin}>
               <FormInput
                 label="Email"
                 id="login-email"
@@ -82,13 +139,14 @@ const Login = () => {
                 </button>
               </div>
 
-              <Button type="submit" fullWidth>
-                Login
+              <Button type="submit" fullWidth disabled={isBusy}>
+                {isBusy ? "Logging in..." : "Login"}
               </Button>
 
               <SocialAuthButtons
                 onGoogleClick={handleGoogleLogin}
                 onFacebookClick={handleFacebookLogin}
+                disabled={isBusy}
               />
 
               <p className="pt-2 text-center text-sm text-gray-600">

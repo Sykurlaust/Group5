@@ -17,6 +17,7 @@ Use this guide to configure Firebase credentials for both the frontend (Vite) an
    - `VITE_FIREBASE_MESSAGING_SENDER_ID`
    - `VITE_FIREBASE_APP_ID`
    - `VITE_FIREBASE_MEASUREMENT_ID` (optional)
+   - `VITE_API_BASE_URL` (e.g., `http://localhost:4000/api` for local Express)
 3. Restart Vite so `import.meta.env` picks up the new variables. The helper in `src/lib/firebase.ts` will validate that none are missing and expose `auth` + `db`.
 
 ## 3. Backend environment file

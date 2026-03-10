@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import Logo from "./Logo.jsx"
+import { useAuth } from "../context/AuthContext"
 
 const navLinks = [
     { label: "Home", to: "/home" },
@@ -19,6 +20,16 @@ const Header = () => {
     )
     const [searchValue, setSearchValue] = useState(currentSearchParam)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const { firebaseUser, profile, logout, loading: authLoading } = useAuth()
+    const isAuthenticated = Boolean(firebaseUser)
+    const accountDisplayName = profile?.displayName ?? firebaseUser?.displayName ?? firebaseUser?.email ?? ""
+    const accountInitials = useMemo(() => {
+        if (!accountDisplayName) return "GC"
+        const parts = accountDisplayName.trim().split(/\s+/)
+        const initials = parts.map((part) => part[0]?.toUpperCase()).filter(Boolean)
+        return (initials[0] ?? "G") + (initials[1] ?? initials[0] ?? "C")
+    }, [accountDisplayName])
+    const roleLabel = profile?.role ?? "guest"
 
     useEffect(() => {
         setSearchValue(currentSearchParam)
@@ -80,6 +91,125 @@ const Header = () => {
         </form>
     )
 
+    const handleLogout = async () => {
+        try {
+            await logout()
+            setIsMobileMenuOpen(false)
+            navigate("/home")
+        } catch (error) {
+            console.error("Failed to log out", error)
+        }
+    }
+
+    const renderDesktopAuthActions = () => {
+        if (authLoading) {
+            return <span className="text-sm text-white/80">Checking session...</span>
+        }
+
+        if (!isAuthenticated) {
+            return (
+                <>
+                    <Link
+                        className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-3 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef] xl:h-12 xl:w-[112px]"
+                        to="/login"
+                    >
+                        Log in
+                    </Link>
+                    <Link
+                        className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857] xl:h-12 xl:w-[112px]"
+                        to="/signup"
+                    >
+                        Sign up
+                    </Link>
+                </>
+            )
+        }
+
+        return (
+            <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 rounded-full border border-white/30 bg-white/10 px-3 py-1.5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-sm font-semibold text-white">
+                        {accountInitials}
+                    </div>
+                    <div className="leading-tight">
+                        <p className="text-sm font-semibold text-white">{accountDisplayName || "Your account"}</p>
+                        <p className="text-xs uppercase tracking-wide text-white/60">{roleLabel}</p>
+                    </div>
+                </div>
+                <Link
+                    className="inline-flex h-11 w-[110px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
+                    to="/dashboard"
+                >
+                    Dashboard
+                </Link>
+                <button
+                    onClick={handleLogout}
+                    className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white/60 bg-white/15 px-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
+                    type="button"
+                >
+                    Log out
+                </button>
+            </div>
+        )
+    }
+
+    const renderMobileAuthActions = () => {
+        if (authLoading) {
+            return <p className="text-center text-sm font-semibold text-white/80">Checking session...</p>
+        }
+
+        if (!isAuthenticated) {
+            return (
+                <div className="grid grid-cols-2 gap-2">
+                    <Link
+                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-4 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef]"
+                        to="/login"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        Log in
+                    </Link>
+                    <Link
+                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
+                        to="/signup"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        Sign up
+                    </Link>
+                </div>
+            )
+        }
+
+        return (
+            <div className="space-y-3">
+                <div className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-base font-semibold text-white">
+                        {accountInitials}
+                    </div>
+                    <div>
+                        <p className="text-base font-semibold text-white">{accountDisplayName || "Your account"}</p>
+                        <p className="text-xs uppercase tracking-wide text-white/70">{roleLabel}</p>
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <Link
+                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-4 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef]"
+                        to="/dashboard"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        Dashboard
+                    </Link>
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
+                    >
+                        Log out
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <header>
             <h1 className="sr-only">GC-Renting</h1>
@@ -108,19 +238,7 @@ const Header = () => {
                             </nav>
 
                             {renderSearchForm("site-search", "max-w-[320px] xl:max-w-[350px]")}
-
-                            <Link
-                                className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-3 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef] xl:h-12 xl:w-[112px]"
-                                to="/login"
-                            >
-                                Log in
-                            </Link>
-                            <Link
-                                className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857] xl:h-12 xl:w-[112px]"
-                                to="/signup"
-                            >
-                                Sign up
-                            </Link>
+                            {renderDesktopAuthActions()}
                         </div>
 
                         <button
@@ -171,20 +289,7 @@ const Header = () => {
                                 ))}
                             </nav>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <Link
-                                    className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-4 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef]"
-                                    to="/login"
-                                >
-                                    Log in
-                                </Link>
-                                <Link
-                                    className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
-                                    to="/signup"
-                                >
-                                    Sign up
-                                </Link>
-                            </div>
+                            {renderMobileAuthActions()}
                         </div>
                     </div>
                 </div>
