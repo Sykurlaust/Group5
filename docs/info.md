@@ -49,7 +49,7 @@ Run both stacks simultaneously to exercise authenticated flows end-to-end.
 ## Environment Configuration
 Follow the detailed checklist in [`docs/firebase-setup.md`](firebase-setup.md). Summary:
 
-1. **Frontend** — copy `frontend/.env.example` to `.env` and paste the Firebase Web App keys. `src/lib/firebase.ts` now reads those values from `import.meta.env` and throws if any are missing.
+1. **Frontend** — copy `frontend/.env.example` to `.env`, paste the Firebase Web App keys, and set `VITE_API_BASE_URL` to your backend API origin (for local dev: `http://localhost:4000/api`). `src/lib/firebase.ts` now reads those values from `import.meta.env` and throws if any are missing.
 2. **Backend** — copy `backend/.env.example` to `.env` and set the `FIREBASE_SERVICE_ACCOUNT_PATH`, CORS origin, and rate-limit numbers you need. Place your downloaded Admin SDK JSON next to it (the file is gitignored; use `serviceAccountKey.example.json` as a reference).
 3. Restart both dev servers after editing env files so the new variables are loaded.
 

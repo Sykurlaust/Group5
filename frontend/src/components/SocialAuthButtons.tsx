@@ -1,9 +1,10 @@
 interface SocialAuthButtonsProps {
   onGoogleClick: () => void
   onFacebookClick: () => void
+  disabled?: boolean
 }
 
-const SocialAuthButtons = ({ onGoogleClick, onFacebookClick }: SocialAuthButtonsProps) => {
+const SocialAuthButtons = ({ onGoogleClick, onFacebookClick, disabled = false }: SocialAuthButtonsProps) => {
   return (
     <>
       <div className="flex items-center gap-4">
@@ -17,7 +18,8 @@ const SocialAuthButtons = ({ onGoogleClick, onFacebookClick }: SocialAuthButtons
           <button
             type="button"
             onClick={onGoogleClick}
-            className="w-full rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            disabled={disabled}
+            className="w-full rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Continue with Google
           </button>
@@ -25,7 +27,8 @@ const SocialAuthButtons = ({ onGoogleClick, onFacebookClick }: SocialAuthButtons
         <button
           type="button"
           onClick={onFacebookClick}
-          className="w-full rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          disabled={disabled}
+          className="w-full rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Continue with Facebook
         </button>

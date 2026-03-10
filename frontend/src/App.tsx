@@ -3,6 +3,7 @@ import AppLayout from "./admin/layout/AppLayout"
 import LandlordDashboard from "./admin/pages/LandlordDashboard"
 import RenterDashboard from "./admin/pages/RenterDashboard"
 import ScrollToTop from "./components/ScrollToTop"
+import RequireAuth from "./components/RequireAuth"
 import AboutUs from "./pages/AboutUs"
 import Contact from "./pages/Contact"
 import DataDeletion from "./pages/DataDeletion"
@@ -33,7 +34,14 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
 
-        <Route path="/dashboard" element={<AppLayout />}>
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAuth>
+              <AppLayout />
+            </RequireAuth>
+          }
+        >
           <Route index element={<Navigate replace to="/dashboard/renter" />} />
           <Route path="renter" element={<RenterDashboard />} />
           <Route path="landlord" element={<LandlordDashboard />} />

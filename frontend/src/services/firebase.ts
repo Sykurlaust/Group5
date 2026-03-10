@@ -1,6 +1,9 @@
-import { getAuth, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth"
-import { app } from "../lib/firebase"
+import { GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth"
+import { auth } from "../lib/firebase"
 
-export const auth = getAuth(app)
+export { auth }
+
 export const googleProvider = new GoogleAuthProvider()
+googleProvider.setCustomParameters({ prompt: "select_account" })
+
 export const facebookProvider = new FacebookAuthProvider()
