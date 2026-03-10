@@ -51,7 +51,7 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
       <div className="relative h-56 w-full bg-gray-200">
         {listing.image ? (
           <img
-            alt=""
+            alt={titleText}
             className="h-full w-full object-cover"
             src={listing.image}
           />

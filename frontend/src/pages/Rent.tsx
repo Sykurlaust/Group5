@@ -1,8 +1,6 @@
 import { collection, getDocs, limit, query } from "firebase/firestore"
-import { ArrowUpDown, Building2, ChevronDown, Euro, MapPin } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import type { ChangeEvent, FormEvent } from "react"
-import { useSearchParams } from "react-router-dom"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
 import ListingCard from "../components/ListingCard"
@@ -53,13 +51,9 @@ type Property = {
   url: string
   bedrooms: number | null
   area: number | null
-  floor: string
-  phone: string
 }
 
 const Rent = () => {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const searchQuery = searchParams.get("search")?.trim() ?? ""
   const [filterValues, setFilterValues] = useState<FilterState>({ ...initialFilters })
   const [allProperties, setAllProperties] = useState<Property[]>([])
   const [displayProperties, setDisplayProperties] = useState<Property[]>([])
@@ -92,13 +86,12 @@ const Rent = () => {
             url: readString(data.url),
             bedrooms: readNullableNumber(data.bedrooms),
             area: readNullableNumber(data.area),
-            floor: readString(data.floor),
-            phone: readString(data.phone),
           } satisfies Property
         })
 
         const apartmentsOnly = mapped.filter((property) => isApartmentOnlyTitle(property.title))
         setAllProperties(apartmentsOnly)
+        setDisplayProperties(apartmentsOnly)
       } catch (fetchError) {
         console.error("Failed to fetch rent listings:", fetchError)
         setError("Could not load listings from Firestore.")
@@ -159,19 +152,14 @@ const Rent = () => {
 
   const handleResetFilters = () => {
     setFilterValues({ ...initialFilters })
-    setSearchParams({})
+    setDisplayProperties(allProperties)
   }
 
   const handleSubmitFilters = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-  }
-
-  useEffect(() => {
-    const filtered = allProperties
-      .filter((property) => matchesFilters(property, filterValues))
-      .filter((property) => matchesSearchQuery(property, searchQuery))
+    const filtered = allProperties.filter((property) => matchesFilters(property, filterValues))
     setDisplayProperties(sortByPrice(filtered, filterValues.sortOrder))
-  }, [allProperties, filterValues, searchQuery])
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f5f0] font-['Space_Grotesk'] text-[#1f1f1f]">
@@ -184,27 +172,18 @@ const Rent = () => {
             <p className="text-lg text-gray-600">
               Search through our available rental properties in Gran Canaria
             </p>
-            {searchQuery && (
-              <p className="mt-3 text-sm font-medium text-[#047857]">
-                Results for: "{searchQuery}"
-              </p>
-            )}
           </div>
 
           <form
-            className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:p-6"
+            className="rounded-[40px] border border-black/5 bg-white px-8 py-6 shadow-sm"
             onSubmit={handleSubmitFilters}
           >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-              <label className="space-y-2 text-sm font-medium text-gray-600">
-                <span>Property type</span>
-                <div className="relative">
-                  <Building2
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
+                Property type
+                <div className="relative rounded-[18px] border border-black/10">
                   <select
-                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-11 pr-10 text-sm text-gray-700 transition hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("propertyType")}
                     value={filterValues.propertyType}
                   >
@@ -215,22 +194,17 @@ const Rent = () => {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                    ⌄
+                  </span>
                 </div>
               </label>
 
-              <label className="space-y-2 text-sm font-medium text-gray-600">
-                <span>Municipality</span>
-                <div className="relative">
-                  <MapPin
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
+                Municipality
+                <div className="relative rounded-[18px] border border-black/10">
                   <select
-                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-11 pr-10 text-sm text-gray-700 transition hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("municipality")}
                     value={filterValues.municipality}
                   >
@@ -241,22 +215,17 @@ const Rent = () => {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                    ⌄
+                  </span>
                 </div>
               </label>
 
-              <label className="space-y-2 text-sm font-medium text-gray-600">
-                <span>Location</span>
-                <div className="relative">
-                  <MapPin
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
+                Location
+                <div className="relative rounded-[18px] border border-black/10">
                   <select
-                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-11 pr-10 text-sm text-gray-700 transition hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("location")}
                     value={filterValues.location}
                   >
@@ -267,22 +236,17 @@ const Rent = () => {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                    ⌄
+                  </span>
                 </div>
               </label>
 
-              <label className="space-y-2 text-sm font-medium text-gray-600">
-                <span>Max. Price</span>
-                <div className="relative">
-                  <Euro
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
+                Max. Price
+                <div className="relative rounded-[18px] border border-black/10">
                   <select
-                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-11 pr-10 text-sm text-gray-700 transition hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("maxPrice")}
                     value={filterValues.maxPrice}
                   >
@@ -293,22 +257,17 @@ const Rent = () => {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                    ⌄
+                  </span>
                 </div>
               </label>
 
-              <label className="space-y-2 text-sm font-medium text-gray-600">
-                <span>Sort by price</span>
-                <div className="relative">
-                  <ArrowUpDown
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+              <label className="space-y-2 text-sm font-semibold text-gray-500">
+                Sort by price
+                <div className="relative rounded-[18px] border border-black/10">
                   <select
-                    className="h-14 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-11 pr-10 text-sm text-gray-700 transition hover:border-gray-400 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full appearance-none rounded-[18px] bg-transparent px-4 py-3 text-sm text-gray-700 focus:outline-none"
                     onChange={handleSelectChange("sortOrder")}
                     value={filterValues.sortOrder}
                   >
@@ -316,24 +275,23 @@ const Rent = () => {
                     <option value="price-asc">Low to high</option>
                     <option value="price-desc">High to low</option>
                   </select>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                    ⌄
+                  </span>
                 </div>
               </label>
             </div>
 
-            <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-gray-100 pt-4">
+            <div className="mt-6 flex flex-wrap items-center justify-end gap-4">
               <button
-                className="inline-flex h-12 items-center rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
+                className="flex items-center gap-2 rounded-full border border-black/10 px-5 py-2 text-sm font-semibold transition hover:bg-gray-50 hover:shadow-sm"
                 onClick={handleResetFilters}
                 type="button"
               >
                 Clear
               </button>
               <button
-                className="inline-flex h-12 items-center rounded-xl bg-emerald-700 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 hover:shadow-md"
+                className="rounded-full bg-[#047857] px-5 py-2 text-sm font-semibold text-white transition hover:opacity-95 hover:shadow-lg"
                 type="submit"
               >
                 Search
@@ -466,27 +424,6 @@ const matchesFilters = (property: Property, filters: FilterState) => {
   if (filters.location && property.location !== filters.location) return false
   if (filters.maxPrice && !priceMatches(property.price, filters.maxPrice)) return false
   return true
-}
-
-const matchesSearchQuery = (property: Property, searchQuery: string) => {
-  const normalized = searchQuery.trim().toLowerCase()
-  if (!normalized) {
-    return true
-  }
-
-  const searchableFields = [
-    property.title,
-    property.description,
-    property.type,
-    property.municipality,
-    property.location,
-    property.floor,
-    property.phone,
-    property.bedrooms === null ? "" : String(property.bedrooms),
-    property.area === null ? "" : String(property.area),
-  ]
-
-  return searchableFields.some((field) => field.toLowerCase().includes(normalized))
 }
 
 const sortByPrice = (properties: Property[], sortOrder: SortOrder) => {
