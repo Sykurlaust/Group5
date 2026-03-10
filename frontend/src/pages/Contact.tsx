@@ -91,11 +91,10 @@ const Contact = () => {
 
 							<div className="grid gap-6 sm:grid-cols-2">
 								<div>
-									<label htmlFor="firstName" className="mb-2 block text-xs font-medium text-gray-600">
+									<label className="mb-2 block text-xs font-medium text-gray-600">
 										First Name
 									</label>
 									<input
-										id="firstName"
 										type="text"
 										name="firstName"
 										value={formData.firstName}
@@ -106,11 +105,10 @@ const Contact = () => {
 									/>
 								</div>
 								<div>
-									<label htmlFor="lastName" className="mb-2 block text-xs font-medium text-gray-600">
+									<label className="mb-2 block text-xs font-medium text-gray-600">
 										Last Name
 									</label>
 									<input
-										id="lastName"
 										type="text"
 										name="lastName"
 										value={formData.lastName}
@@ -125,11 +123,10 @@ const Contact = () => {
 
 							<div className="grid gap-6 sm:grid-cols-2">
 								<div>
-									<label htmlFor="email" className="mb-2 block text-xs font-medium text-gray-600">
+									<label className="mb-2 block text-xs font-medium text-gray-600">
 										Email
 									</label>
 									<input
-										id="email"
 										type="email"
 										name="email"
 										value={formData.email}
@@ -140,11 +137,10 @@ const Contact = () => {
 									/>
 								</div>
 								<div>
-									<label htmlFor="phone" className="mb-2 block text-xs font-medium text-gray-600">
+									<label className="mb-2 block text-xs font-medium text-gray-600">
 										Phone Number
 									</label>
 									<input
-										id="phone"
 										type="tel"
 										name="phone"
 										value={formData.phone}
@@ -157,8 +153,8 @@ const Contact = () => {
 							</div>
 
 
-							<fieldset>
-								<legend className="mb-4 text-sm font-semibold">Select Subject?</legend>
+							<div>
+								<p className="mb-4 text-sm font-semibold">Select Subject?</p>
 								<div className="grid gap-3 sm:grid-cols-2">
 									<label className="flex items-center gap-2">
 										<input
@@ -205,15 +201,14 @@ const Contact = () => {
 										<span className="text-sm">Other</span>
 									</label>
 								</div>
-							</fieldset>
+							</div>
 
 
 							<div>
-								<label htmlFor="message" className="mb-2 block text-xs font-medium text-gray-600">
+								<label className="mb-2 block text-xs font-medium text-gray-600">
 									Message
 								</label>
 								<textarea
-									id="message"
 									name="message"
 									value={formData.message}
 									onChange={handleChange}

@@ -3,7 +3,6 @@ import { useEffect, useState } from "react"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
 import ListingCard from "../components/ListingCard"
-import heroImage from "../assets/reiseuhu-W_7-oQmwyuw-unsplash.jpg"
 import { db } from "../lib/firebase"
 
 type FeaturedListing = {
@@ -19,6 +18,9 @@ type FeaturedListing = {
 }
 
 const FEATURED_COUNT = 6
+
+const heroImage =
+	"src/assets/reiseuhu-W_7-oQmwyuw-unsplash.jpg"
 
 const Home = () => {
   const [featuredListings, setFeaturedListings] = useState<FeaturedListing[]>([])
@@ -75,17 +77,17 @@ const Home = () => {
 		<div className="min-h-screen bg-[#f5f5f0] text-[#1f1f1f] font-['Space_Grotesk']">
 			<Header />
 			<main id="home">
-			<section className="mx-auto mt-10 grid w-full max-w-7xl items-center gap-8 px-4 sm:px-6 lg:mt-14 lg:grid-cols-2 lg:gap-12" id="rent">
-				<div className="order-2 space-y-4 lg:order-1">
+			<section className="mx-auto mt-16 grid w-full max-w-7xl gap-12 px-6 grid-cols-2 items-stretch" id="rent">
+				<div className="space-y-4 flex flex-col justify-center">
 					<p className="text-base font-semibold text-[#1f1f1f]">Rent</p>
-					<p className="max-w-[26ch] text-3xl leading-relaxed text-[#1f1f1f] sm:text-4xl">
+					<p className="text-xl leading-relaxed text-[#1f1f1f]">
 						Long-term rental properties in Gran Canaria. A great selection of property to rent in the best locations of the island, and professional support for landlords.
 					</p>
 				</div>
-				<div className="relative order-1 mx-auto h-64 w-full overflow-hidden rounded-[28px] sm:h-80 lg:order-2 lg:h-[26rem]">
-					<img alt="Gran Canaria cliffs" className="h-full w-full object-cover" src={heroImage} />
+				<div className="relative mx-auto h-80 w-full max-w-none overflow-hidden rounded-[36px]">
+					<img alt="Gran Canaria cliffs" className="h-full w-full object-contain" src={heroImage} />
 					<div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center text-[#1f1f1f]">
-						<div className="flex flex-col gap-3 text-4xl font-semibold uppercase tracking-tight drop-shadow-sm sm:text-5xl">
+						<div className="flex flex-col gap-3 text-5xl font-semibold uppercase tracking-tight drop-shadow-sm md:text-6xl">
 							<span className="mx-auto rounded-[6px] bg-[#5fd0bb] px-6 py-2">Gran</span>
 							<span className="mx-auto rounded-[6px] bg-[#5fd0bb] px-6 py-2">Canaria</span>
 						</div>
