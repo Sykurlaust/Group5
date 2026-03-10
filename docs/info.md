@@ -47,30 +47,11 @@ npm run dev
 Run both stacks simultaneously to exercise authenticated flows end-to-end.
 
 ## Environment Configuration
-Create `backend/.env` (and optionally `.env.local`) with the Firebase Admin credentials used by `firebase-admin`:
+Follow the detailed checklist in [`docs/firebase-setup.md`](firebase-setup.md). Summary:
 
-| Variable | Description |
-| --- | --- |
-| `FIREBASE_PROJECT_ID` | Firebase project identifier |
-| `FIREBASE_CLIENT_EMAIL` | Service account client email |
-| `FIREBASE_PRIVATE_KEY` | Multiline private key (remember to wrap in quotes and replace `\n`) |
-| `PORT` | API port (defaults to 4000) |
-
-Implement `src/config/firebase.ts` to initialize `firebase-admin` and export `firebaseAuth` + `firestore` (see `src/middlewares/authenticate.ts` for the expected names).
-
-For the frontend, prefer using Vite env variables instead of hardcoding credentials. Create `frontend/.env` with:
-
-```
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_STORAGE_BUCKET=
-VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID=
-VITE_FIREBASE_MEASUREMENT_ID=
-```
-
-Then consume them in `src/lib/firebase.ts` (Vite exposes them on `import.meta.env`).
+1. **Frontend** — copy `frontend/.env.example` to `.env` and paste the Firebase Web App keys. `src/lib/firebase.ts` now reads those values from `import.meta.env` and throws if any are missing.
+2. **Backend** — copy `backend/.env.example` to `.env` and set the `FIREBASE_SERVICE_ACCOUNT_PATH`, CORS origin, and rate-limit numbers you need. Place your downloaded Admin SDK JSON next to it (the file is gitignored; use `serviceAccountKey.example.json` as a reference).
+3. Restart both dev servers after editing env files so the new variables are loaded.
 
 ## Useful Scripts
 | Location | Command | Purpose |
@@ -82,6 +63,7 @@ Then consume them in `src/lib/firebase.ts` (Vite exposes them on `import.meta.en
 | scripts | `node importListings.mjs` | Seed properties into Firestore |
 
 ## Recommended Next Docs
+- `docs/firebase-setup.md` — end-to-end checklist for configuring Firebase keys and service accounts
 - `docs/api.md` — endpoints, request/response examples, auth requirements
 - `docs/frontend-styleguide.md` — component patterns, typography, branding tokens
 - `docs/runbooks/` — operational procedures (deploy, rollback, analytics exports)
