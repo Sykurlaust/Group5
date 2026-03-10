@@ -7,6 +7,7 @@ import Footer from "../components/Footer"
 import Header from "../components/Header"
 import SimilarListings from "../components/SimilarListings"
 import type { SimilarListing } from "../components/SimilarListings"
+import { useAuth } from "../context/AuthContext"
 import { db } from "../lib/firebase"
 
 type ListingDetailData = {
@@ -42,6 +43,7 @@ type SimilarCandidate = SimilarListing & {
 
 const ListingDetail = () => {
   const navigate = useNavigate()
+  const { firebaseUser } = useAuth()
   const { id } = useParams<{ id: string }>()
   const [listing, setListing] = useState<ListingDetailData | null>(null)
   const [similarListings, setSimilarListings] = useState<SimilarListing[]>([])
@@ -234,7 +236,7 @@ const ListingDetail = () => {
                       availableFrom={listing.availableFrom || "Available now"}
                       deposit={listing.deposit || "Contact for details"}
                       monthlyRent={formatMonthlyRent(listing.price, listing.currency)}
-                      onApply={() => navigate("/login")}
+                      onApply={() => navigate(firebaseUser ? "/apply" : "/login")}
                       rentalPeriod={listing.rentalPeriod || "Flexible rental"}
                       totalMoveInCost={listing.totalMoveInCost || "Contact for details"}
                     />
@@ -242,7 +244,7 @@ const ListingDetail = () => {
                     <ContactLandlordCard
                       landlordImage={listing.landlordImage}
                       landlordName={listing.landlordName || "Property owner"}
-                      onMessage={() => navigate("/login")}
+                      onMessage={() => navigate(firebaseUser ? "/messages" : "/login")}
                     />
                   </aside>
                 </div>

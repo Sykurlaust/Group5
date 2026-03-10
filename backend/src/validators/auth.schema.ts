@@ -1,5 +1,10 @@
 import { z } from "zod"
 
+const imageDataUrlSchema = z
+  .string()
+  .trim()
+  .regex(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "Photo must be a valid image data URL")
+
 export const registerSchema = z.object({
   displayName: z
     .string()
@@ -23,7 +28,7 @@ export const updateProfileSchema = z
       .max(20, "Phone number must not exceed 20 digits")
       .optional(),
     photoURL: z
-      .union([z.string().trim().url("Photo URL must be a valid URL"), z.literal(null)])
+      .union([z.string().trim().url("Photo URL must be a valid URL"), imageDataUrlSchema, z.literal(null)])
       .optional(),
   })
   .refine((data) => Object.values(data).some((value) => value !== undefined), {

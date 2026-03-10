@@ -3,8 +3,7 @@ import { useAdminSidebar } from "../context/AdminSidebarContext"
 import { cn } from "./cn"
 
 const navItems = [
-  { label: "Renter Dashboard", to: "/dashboard/renter" },
-  { label: "Landlord Dashboard", to: "/dashboard/landlord" },
+  { label: "Favorited", to: "/dashboard/favorited" },
 ]
 
 const sidebarBase =
@@ -25,7 +24,7 @@ const AdminSidebar = () => {
         <div className="absolute right-[3px] top-1/2 hidden h-16 w-2 -translate-y-1/2 rounded-full bg-[#047857] shadow-sm lg:block" />
         <div className="flex items-center justify-between pb-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#047857]">Admin</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#047857]">Account</p>
             <p className="text-xl font-semibold text-[#1f1f1f]">GC-Renting</p>
           </div>
           <button
