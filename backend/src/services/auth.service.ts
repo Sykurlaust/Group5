@@ -19,7 +19,7 @@ export const createUser = async (data: CreateUserData): Promise<User> => {
     displayName: data.displayName,
     photoURL: data.photoURL ?? null,
     phone: data.phone ?? null,
-    role: data.role ?? "guest",
+    role: data.role ?? "tenant",
     verified: false,
     createdAt: now,
     updatedAt: now,
