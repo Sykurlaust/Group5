@@ -3,6 +3,7 @@ import AppLayout from "./admin/layout/AppLayout"
 import AdminDashboard from "./admin/pages/AdminDashboard"
 import LandlordDashboard from "./admin/pages/LandlordDashboard"
 import ScrollToTop from "./components/ScrollToTop"
+import SupportChatbot from "./components/SupportChatbot"
 import RequireAuth from "./components/RequireAuth"
 import RequireRole from "./components/RequireRole"
 import Account from "./pages/Account"
@@ -28,6 +29,7 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <SupportChatbot />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
