@@ -1,10 +1,22 @@
 import { collection, getDocs, limit, orderBy, query } from "firebase/firestore"
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
 import ListingCard from "../components/ListingCard"
 import heroImage from "../assets/reiseuhu-W_7-oQmwyuw-unsplash.jpg"
 import { db } from "../lib/firebase"
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api"
+
+type HomeReview = {
+  id: string
+  userName: string
+  userPhoto: string | null
+  rating: number
+  title: string
+  comment: string
+}
 
 type FeaturedListing = {
   id: string
@@ -18,12 +30,13 @@ type FeaturedListing = {
   clicks: number
 }
 
-const FEATURED_COUNT = 6
+const FEATURED_COUNT = 3
 
 const Home = () => {
   const [featuredListings, setFeaturedListings] = useState<FeaturedListing[]>([])
   const [loadingFeatured, setLoadingFeatured] = useState(true)
   const [featuredError, setFeaturedError] = useState("")
+  const [homeReviews, setHomeReviews] = useState<HomeReview[]>([])
 
   useEffect(() => {
     const loadFeaturedListings = async () => {
@@ -69,6 +82,13 @@ const Home = () => {
     }
 
     void loadFeaturedListings()
+  }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/reviews?limit=4`)
+      .then((r) => r.json())
+      .then((data) => setHomeReviews(data.reviews ?? []))
+      .catch(() => {})
   }, [])
 
 	return (
@@ -123,6 +143,68 @@ const Home = () => {
 					<div className="h-1 w-36 rounded-full bg-gray-300" />
 				</div>
 			</section>
+
+      {/* Reviews section */}
+      <section className="mx-auto mt-8 max-w-6xl px-6 pb-16">
+        <div className="text-center">
+          <p className="text-sm uppercase tracking-[0.3em] text-gray-500">Testimonials</p>
+          <h2 className="mt-2 text-3xl font-semibold text-[#1f1f1f]">What our tenants say</h2>
+        </div>
+
+        {homeReviews.length === 0 ? (
+          <div className="mt-10 flex flex-col items-center gap-4 rounded-3xl border border-black/5 bg-white px-8 py-14 text-center shadow-sm">
+            <span className="text-4xl">💬</span>
+            <p className="text-lg font-semibold text-[#1f1f1f]">No reviews yet</p>
+            <p className="max-w-xs text-sm text-gray-500">Be the first to share your experience finding a home in Gran Canaria.</p>
+            <Link
+              to="/reviews"
+              className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-[#047857] px-8 text-sm font-semibold text-white transition hover:bg-[#036c50]"
+            >
+              Write the first review
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className={`mt-10 grid gap-6 ${
+              homeReviews.length === 1 ? "grid-cols-1 max-w-sm mx-auto" :
+              homeReviews.length === 2 ? "sm:grid-cols-2 max-w-2xl mx-auto" :
+              homeReviews.length === 3 ? "sm:grid-cols-2 lg:grid-cols-3" :
+              "sm:grid-cols-2 lg:grid-cols-4"
+            }`}>
+              {homeReviews.map((review) => (
+                <article key={review.id} className="flex flex-col gap-3 rounded-3xl border border-black/5 bg-white p-6 shadow-sm">
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i} className={i < review.rating ? "text-amber-400" : "text-gray-200"}>★</span>
+                    ))}
+                  </div>
+                  <p className="text-sm font-semibold text-[#1f1f1f]">{review.title}</p>
+                  <p className="line-clamp-3 text-sm text-gray-600">{review.comment}</p>
+                  <div className="mt-auto flex items-center gap-2 pt-2">
+                    {review.userPhoto ? (
+                      <img src={review.userPhoto} alt={review.userName} className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#047857] text-xs font-semibold text-white">
+                        {review.userName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-xs font-medium text-gray-700">{review.userName}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-10 flex justify-center">
+              <Link
+                to="/reviews"
+                className="inline-flex h-11 items-center justify-center rounded-full border border-[#047857] px-8 text-sm font-semibold text-[#047857] transition hover:bg-[#047857] hover:text-white"
+              >
+                See all reviews
+              </Link>
+            </div>
+          </>
+        )}
+      </section>
 		</main>
 
 		<Footer />
