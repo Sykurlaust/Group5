@@ -3,7 +3,8 @@ import type { ReactNode } from "react"
 import type { User } from "firebase/auth"
 import { onIdTokenChanged, signOut } from "firebase/auth"
 import { auth } from "../services/firebase"
-import { callAuthenticatedEndpoint } from "../lib/apiClient"
+import { doc, getDoc, setDoc } from "firebase/firestore"
+import { db } from "../lib/firebase"
 
 export type UserRole = "admin" | "landlord" | "tenant" | "guest"
 
@@ -42,36 +43,22 @@ const buildDisplayName = (user: User): string => {
   return "Guest"
 }
 
-const callAuthEndpoint = async (token: string, path: string, init: RequestInit = {}) =>
-  callAuthenticatedEndpoint(token, path, init)
-
-const fetchProfile = async (token: string): Promise<UserProfile> => {
-  const response = await callAuthEndpoint(token, "/auth/me")
-  if (!response.ok) {
-    throw new Error("Unable to fetch profile")
+const ensureProfile = async (user: User): Promise<UserProfile> => {
+  const ref = doc(db, "users", user.uid)
+  const snap = await getDoc(ref)
+  if (snap.exists()) {
+    return mapUserProfile({ uid: user.uid, ...snap.data() })
   }
-
-  const data = await response.json()
-  return mapUserProfile(data.user)
-}
-
-const ensureProfile = async (user: User, token: string): Promise<UserProfile> => {
-  const response = await callAuthEndpoint(token, "/auth/me")
-
-  if (response.status === 404) {
-    await callAuthEndpoint(token, "/auth/register", {
-      method: "POST",
-      body: JSON.stringify({ displayName: buildDisplayName(user) }),
-    })
-    return fetchProfile(token)
+  const newData = {
+    email: user.email ?? "",
+    displayName: buildDisplayName(user),
+    photoURL: user.photoURL ?? null,
+    phone: null,
+    role: "tenant",
+    verified: user.emailVerified,
   }
-
-  if (!response.ok) {
-    throw new Error("Unable to synchronize user profile")
-  }
-
-  const data = await response.json()
-  return mapUserProfile(data.user)
+  await setDoc(ref, newData)
+  return mapUserProfile({ uid: user.uid, ...newData })
 }
 
 export interface UserProfile {
@@ -104,8 +91,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null)
 
   const syncProfile = useCallback(
-    async (user: User, nextToken: string) => {
-      const resolvedProfile = await ensureProfile(user, nextToken)
+    async (user: User) => {
+      const resolvedProfile = await ensureProfile(user)
       setProfile(resolvedProfile)
     },
     [],
@@ -127,7 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const freshToken = await user.getIdToken()
         setToken(freshToken)
-        await syncProfile(user, freshToken)
+        await syncProfile(user)
       } catch (err) {
         console.error("Failed to sync auth state", err)
         setError(err instanceof Error ? err.message : "Failed to sync authentication state")
@@ -146,7 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const freshToken = await firebaseUser.getIdToken(true)
       setToken(freshToken)
-      await syncProfile(firebaseUser, freshToken)
+      await syncProfile(firebaseUser)
       setError(null)
     } catch (err) {
       console.error("Failed to refresh profile", err)

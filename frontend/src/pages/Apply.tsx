@@ -3,7 +3,9 @@ import type { FormEvent } from "react"
 import { Helmet } from "react-helmet-async"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
+import { addDoc, collection, serverTimestamp } from "firebase/firestore"
 import { useAuth } from "../context/AuthContext"
+import { db } from "../lib/firebase"
 
 type ApplyFormState = {
   applicantDisplayName: string
@@ -23,16 +25,9 @@ const initialFormState: ApplyFormState = {
   motivation: "",
 }
 
-const getApiBaseUrl = (): string => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL
-  if (!baseUrl) {
-    throw new Error("VITE_API_BASE_URL is not defined. Please set it in your .env file.")
-  }
-  return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl
-}
 
 const Apply = () => {
-  const { token, profile, firebaseUser } = useAuth()
+  const { profile, firebaseUser } = useAuth()
   const [formState, setFormState] = useState<ApplyFormState>(() => ({
     ...initialFormState,
     applicantDisplayName: profile?.displayName ?? firebaseUser?.displayName ?? "",
@@ -52,7 +47,7 @@ const Apply = () => {
     )
   }, [formState])
 
-  const submissionBlocked = submitting || !token
+  const submissionBlocked = submitting || !firebaseUser
 
   const handleChange = (field: keyof ApplyFormState) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -61,7 +56,7 @@ const Apply = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!token) {
+    if (!firebaseUser) {
       setErrorMessage("You must be logged in to submit an application.")
       return
     }
@@ -71,28 +66,18 @@ const Apply = () => {
     setSuccessMessage("")
 
     try {
-      const response = await fetch(`${getApiBaseUrl()}/applications/renter`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          applicantDisplayName: formState.applicantDisplayName.trim(),
-          applicantPhone: formState.applicantPhone.trim(),
-          currentCity: formState.currentCity.trim(),
-          monthlyIncome: Number(formState.monthlyIncome),
-          preferredMoveInDate: formState.preferredMoveInDate,
-          motivation: formState.motivation.trim(),
-        }),
+      await addDoc(collection(db, "applications"), {
+        userId: firebaseUser.uid,
+        userEmail: firebaseUser.email ?? "",
+        applicantDisplayName: formState.applicantDisplayName.trim(),
+        applicantPhone: formState.applicantPhone.trim(),
+        currentCity: formState.currentCity.trim(),
+        monthlyIncome: Number(formState.monthlyIncome),
+        preferredMoveInDate: formState.preferredMoveInDate,
+        motivation: formState.motivation.trim(),
+        status: "pending",
+        createdAt: serverTimestamp(),
       })
-
-      const data = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        setErrorMessage(data?.error ?? "Failed to submit application.")
-        return
-      }
 
       setSuccessMessage("Application submitted successfully. Our team will review it soon.")
       setFormState((prev) => ({
@@ -122,7 +107,7 @@ const Apply = () => {
             Fill out this form and your application will be stored in our database for review.
           </p>
 
-          {!token && (
+          {!firebaseUser && (
             <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
               Please sign in to submit your rental application.
             </div>
@@ -203,7 +188,7 @@ const Apply = () => {
               disabled={submissionBlocked || !canSubmit}
               type="submit"
             >
-              {submitting ? "Submitting..." : token ? "Submit application" : "Sign in to apply"}
+              {submitting ? "Submitting..." : firebaseUser ? "Submit application" : "Sign in to apply"}
             </button>
           </form>
         </section>

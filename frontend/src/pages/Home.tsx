@@ -7,8 +7,6 @@ import ListingCard from "../components/ListingCard"
 import heroImage from "../assets/reiseuhu-W_7-oQmwyuw-unsplash.jpg"
 import { db } from "../lib/firebase"
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api"
-
 type HomeReview = {
   id: string
   userName: string
@@ -85,10 +83,28 @@ const Home = () => {
   }, [])
 
   useEffect(() => {
-    fetch(`${API_BASE}/reviews?limit=4`)
-      .then((r) => r.json())
-      .then((data) => setHomeReviews(data.reviews ?? []))
-      .catch(() => {})
+    const loadReviews = async () => {
+      try {
+        const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"), limit(4))
+        const snap = await getDocs(q)
+        setHomeReviews(
+          snap.docs.map((d) => {
+            const data = d.data()
+            return {
+              id: d.id,
+              userName: typeof data.userName === "string" ? data.userName : "Anonymous",
+              userPhoto: typeof data.userPhoto === "string" ? data.userPhoto : null,
+              rating: typeof data.rating === "number" ? data.rating : 5,
+              title: typeof data.title === "string" ? data.title : "",
+              comment: typeof data.comment === "string" ? data.comment : "",
+            }
+          }),
+        )
+      } catch {
+        // ignore
+      }
+    }
+    void loadReviews()
   }, [])
 
 	return (

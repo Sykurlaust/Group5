@@ -1,5 +1,16 @@
 import type { UserRole } from "../context/AuthContext"
-import { callAuthenticatedEndpoint } from "./apiClient"
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  startAfter,
+  updateDoc,
+} from "firebase/firestore"
+import { db } from "./firebase"
 
 interface FirestoreTimestampLike {
   seconds: number
@@ -31,90 +42,63 @@ export interface CreateAdminUserPayload {
   phone?: string
 }
 
-const readJson = async (response: Response) => {
-  const text = await response.text()
-  if (!text) {
-    return {}
-  }
-  try {
-    return JSON.parse(text)
-  } catch {
-    return {}
-  }
-}
-
-const ensureOk = async <T>(response: Response): Promise<T> => {
-  const payload = await readJson(response)
-  if (!response.ok) {
-    const message = typeof (payload as { error?: string })?.error === "string" ? payload.error : "Unexpected server error"
-    throw new Error(message)
-  }
-  return payload as T
-}
 
 export const listAdminUsers = async (
-  token: string,
+  _token: string,
   params: { cursor?: string; limit?: number } = {},
 ): Promise<AdminUserListResponse> => {
-  const query = new URLSearchParams()
-  if (params.limit) {
-    query.set("limit", String(params.limit))
+  try {
+    const pageLimit = params.limit ?? 50
+    const baseQuery = params.cursor
+      ? query(collection(db, "users"), orderBy("email"), startAfter(params.cursor), limit(pageLimit))
+      : query(collection(db, "users"), orderBy("email"), limit(pageLimit))
+    const snap = await getDocs(baseQuery)
+    const users: AdminUserRecord[] = snap.docs.map((d) => ({
+      uid: d.id,
+      ...d.data(),
+    } as AdminUserRecord))
+    const nextCursor =
+      snap.docs.length === pageLimit
+        ? ((snap.docs[snap.docs.length - 1].data().email as string) ?? null)
+        : null
+    return { users, nextCursor }
+  } catch (err) {
+    throw new Error(err instanceof Error ? err.message : "Failed to list users")
   }
-  if (params.cursor) {
-    query.set("cursor", params.cursor)
-  }
-
-  const qs = query.toString()
-  const response = await callAuthenticatedEndpoint(token, `/admin/users${qs ? `?${qs}` : ""}`)
-  return ensureOk<AdminUserListResponse>(response)
 }
 
 export const createAdminUser = async (
-  token: string,
-  payload: CreateAdminUserPayload,
+  _token: string,
+  _payload: CreateAdminUserPayload,
 ): Promise<AdminUserRecord> => {
-  const response = await callAuthenticatedEndpoint(token, "/admin/users", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  })
-  const data = await ensureOk<{ user: AdminUserRecord }>(response)
-  return data.user
+  throw new Error(
+    "Creating users requires the backend. Use the Firebase console or deploy the backend server.",
+  )
 }
 
 export const updateAdminUserRole = async (
-  token: string,
+  _token: string,
   uid: string,
   role: UserRole,
 ): Promise<AdminUserRecord> => {
-  const response = await callAuthenticatedEndpoint(token, `/admin/users/${uid}/role`, {
-    method: "PATCH",
-    body: JSON.stringify({ role }),
-  })
-  const data = await ensureOk<{ user: AdminUserRecord }>(response)
-  return data.user
+  await updateDoc(doc(db, "users", uid), { role })
+  const snap = await getDoc(doc(db, "users", uid))
+  return { uid, ...snap.data() } as AdminUserRecord
 }
 
 export const updateAdminUserVerification = async (
-  token: string,
+  _token: string,
   uid: string,
   verified: boolean,
 ): Promise<AdminUserRecord> => {
-  const response = await callAuthenticatedEndpoint(token, `/admin/users/${uid}/verify`, {
-    method: "PATCH",
-    body: JSON.stringify({ verified }),
-  })
-  const data = await ensureOk<{ user: AdminUserRecord }>(response)
-  return data.user
+  await updateDoc(doc(db, "users", uid), { verified })
+  const snap = await getDoc(doc(db, "users", uid))
+  return { uid, ...snap.data() } as AdminUserRecord
 }
 
-export const deleteAdminUser = async (token: string, uid: string): Promise<void> => {
-  const response = await callAuthenticatedEndpoint(token, `/admin/users/${uid}`, {
-    method: "DELETE",
-  })
-  if (!response.ok) {
-    const payload = await readJson(response)
-    const message = typeof (payload as { error?: string })?.error === "string" ? payload.error : "Failed to delete user"
-    throw new Error(message)
-  }
+export const deleteAdminUser = async (_token: string, _uid: string): Promise<void> => {
+  throw new Error(
+    "Deleting users requires the backend. Use the Firebase console or deploy the backend server.",
+  )
 }
 
