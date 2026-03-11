@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import type { FormEvent } from "react"
+import { collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc } from "firebase/firestore"
+import { db } from "../../lib/firebase"
 import { Helmet } from "react-helmet-async"
 import AdminHighlights from "../components/AdminHighlights"
 import AdminStatCard from "../components/AdminStatCard"
@@ -38,6 +40,51 @@ const reviewQueue = [
 
 type ManagedRole = "admin" | "landlord" | "tenant"
 
+type ContactMessage = {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  subject: string
+  message: string
+  read: boolean
+  createdAt: unknown
+}
+
+const subjectLabel = (subject: string): string => {
+  const labels: Record<string, string> = {
+    general: "General Inquiry",
+    rental: "Rental Inquiry",
+    support: "Support",
+    other: "Other",
+  }
+  return labels[subject] ?? subject
+}
+
+const subjectBadgeClass = (subject: string): string => {
+  const classes: Record<string, string> = {
+    general: "bg-blue-50 text-blue-700",
+    rental: "bg-purple-50 text-purple-700",
+    support: "bg-amber-50 text-amber-700",
+    other: "bg-gray-100 text-gray-600",
+  }
+  return classes[subject] ?? "bg-gray-100 text-gray-600"
+}
+
+const formatContactDate = (createdAt: unknown): string => {
+  if (!createdAt || typeof createdAt !== "object") return ""
+  const ts = createdAt as { seconds?: number }
+  if (!ts.seconds) return ""
+  return new Date(ts.seconds * 1000).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 const roleSelectOptions: Array<{ label: string; value: UserRole }> = [
   { label: "Admin", value: "admin" },
   { label: "Landlord", value: "landlord" },
@@ -66,6 +113,35 @@ const AdminDashboard = () => {
   const [formState, setFormState] = useState(defaultFormState)
   const [formError, setFormError] = useState<string | null>(null)
   const [formSubmitting, setFormSubmitting] = useState(false)
+
+  const [contacts, setContacts] = useState<ContactMessage[]>([])
+  const [contactsLoading, setContactsLoading] = useState(true)
+
+  const loadContacts = useCallback(async () => {
+    setContactsLoading(true)
+    try {
+      const q = query(collection(db, "contacts"), orderBy("createdAt", "desc"))
+      const snap = await getDocs(q)
+      setContacts(snap.docs.map((d) => ({ id: d.id, ...d.data() } as ContactMessage)))
+    } catch {
+      // silently fail
+    } finally {
+      setContactsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { void loadContacts() }, [loadContacts])
+
+  const handleToggleContactRead = async (id: string, currentRead: boolean) => {
+    await updateDoc(doc(db, "contacts", id), { read: !currentRead })
+    setContacts((prev) => prev.map((c) => c.id === id ? { ...c, read: !currentRead } : c))
+  }
+
+  const handleDeleteContact = async (id: string) => {
+    if (!window.confirm("Delete this message permanently?")) return
+    await deleteDoc(doc(db, "contacts", id))
+    setContacts((prev) => prev.filter((c) => c.id !== id))
+  }
 
   const setUserBusy = useCallback((uid: string, busy: boolean) => {
     setBusyUsers((prev) => {
@@ -315,6 +391,92 @@ const AdminDashboard = () => {
             </button>
           </section>
         </div>
+
+        <section className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-[#1f1f1f]">Contact Messages</h2>
+              <p className="text-sm text-gray-500">Messages received from the contact form.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              {contacts.filter((c) => !c.read).length > 0 && (
+                <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600">
+                  {contacts.filter((c) => !c.read).length} unread
+                </span>
+              )}
+              <button
+                type="button"
+                className="rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-[#047857] hover:border-[#047857] disabled:opacity-50"
+                onClick={() => loadContacts()}
+                disabled={contactsLoading}
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          {contactsLoading ? (
+            <p className="mt-4 text-sm text-gray-500">Loading messages...</p>
+          ) : contacts.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-dashed border-black/10 py-10 text-center">
+              <p className="text-sm text-gray-500">No contact messages yet.</p>
+            </div>
+          ) : (
+            <div className="mt-5 space-y-3">
+              {contacts.map((msg) => (
+                <article
+                  key={msg.id}
+                  className={`rounded-2xl border p-4 transition ${
+                    msg.read ? "border-black/5 bg-[#f9fafb]" : "border-[#047857]/20 bg-[#ecfdf5]"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-semibold text-[#1f1f1f]">
+                          {msg.firstName} {msg.lastName}
+                        </p>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${subjectBadgeClass(msg.subject)}`}>
+                          {subjectLabel(msg.subject)}
+                        </span>
+                        {!msg.read && (
+                          <span className="rounded-full bg-[#047857] px-2 py-0.5 text-xs font-semibold text-white">New</span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 text-xs text-gray-500">{msg.email} · {msg.phone}</p>
+                      <p className="mt-2 line-clamp-3 text-sm text-gray-700">{msg.message}</p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      <p className="text-xs text-gray-400">{formatContactDate(msg.createdAt)}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <a
+                          href={`mailto:${msg.email}?subject=Re: ${subjectLabel(msg.subject)} – GC-Renting&body=Hi ${msg.firstName},%0A%0A`}
+                          className="rounded-full bg-[#047857] px-3 py-1 text-xs font-semibold text-white hover:bg-[#036c50]"
+                        >
+                          Reply
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleContactRead(msg.id, msg.read)}
+                          className="rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-gray-600 hover:border-[#047857] hover:text-[#047857]"
+                        >
+                          {msg.read ? "Mark unread" : "Mark read"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteContact(msg.id)}
+                          className="rounded-full border border-red-100 px-3 py-1 text-xs font-semibold text-red-500 hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
 
         <section className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
