@@ -6,6 +6,7 @@ import DataDeletion from "../pages/DataDeletion"
 import Home from "../pages/Home"
 import Login from "../pages/loginpage"
 import Privacy from "../pages/Privacy"
+import Reviews from "../pages/Reviews"
 import Terms from "../pages/Terms"
 import Rent from "../pages/Rent"
 import Signup from "../pages/signuppage"
@@ -24,6 +25,7 @@ const AppRouter = () => (
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/data-deletion" element={<DataDeletion />} />
+      <Route path="/reviews" element={<Reviews />} />
     </Routes>
   </BrowserRouter>
 )
