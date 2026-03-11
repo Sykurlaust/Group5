@@ -2,7 +2,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import AppLayout from "./admin/layout/AppLayout"
 import AdminDashboard from "./admin/pages/AdminDashboard"
 import LandlordDashboard from "./admin/pages/LandlordDashboard"
-import RenterDashboard from "./admin/pages/RenterDashboard"
 import ScrollToTop from "./components/ScrollToTop"
 import RequireAuth from "./components/RequireAuth"
 import RequireRole from "./components/RequireRole"
@@ -16,6 +15,7 @@ import ListingDetail from "./pages/ListingDetail"
 import Listings from "./pages/Listings"
 import Login from "./pages/loginpage"
 import MessagesPage from "./pages/MessagesPage"
+import Favorites from "./pages/Favorites"
 import Privacy from "./pages/Privacy"
 import Rent from "./pages/Rent"
 import Settings from "./pages/Settings"
@@ -41,15 +41,15 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
         <Route
-          path="/favorited"
+          path="/favorites"
           element={
             <RequireAuth>
-              <RequireRole allowedRoles={["tenant", "admin"]} redirectTo="/account">
-                <RenterDashboard />
-              </RequireRole>
+              <Favorites />
             </RequireAuth>
           }
         />
+        <Route path="/favorited" element={<Navigate replace to="/favorites" />} />
+        <Route path="/favoritos" element={<Navigate replace to="/favorites" />} />
         <Route
           path="/messages"
           element={
@@ -108,8 +108,8 @@ function App() {
               </RequireRole>
             }
           />
-          <Route path="renter" element={<Navigate replace to="/favorited" />} />
-          <Route path="favorited" element={<Navigate replace to="/favorited" />} />
+          <Route path="renter" element={<Navigate replace to="/favorites" />} />
+          <Route path="favorited" element={<Navigate replace to="/favorites" />} />
         </Route>
       </Routes>
     </BrowserRouter>
@@ -140,7 +140,7 @@ const DashboardLanding = () => {
   }
 
   if (role === "tenant") {
-    return <Navigate replace to="/favorited" />
+    return <Navigate replace to="/favorites" />
   }
 
   return <Navigate replace to="/home" />

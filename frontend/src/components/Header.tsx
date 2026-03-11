@@ -171,7 +171,7 @@ const Header = () => {
             <div className="flex items-center gap-3">
                 <Link
                     className="inline-flex h-11 w-[110px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
-                    to="/favorited"
+                    to="/favorites"
                 >
                     Favorited
                 </Link>
@@ -305,7 +305,7 @@ const Header = () => {
                     </Link>
                     <Link
                         className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-4 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef]"
-                        to="/favorited"
+                        to="/favorites"
                         onClick={() => setIsMobileMenuOpen(false)}
                     >
                         Favorited
