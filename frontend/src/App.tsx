@@ -21,6 +21,7 @@ import Privacy from "./pages/Privacy"
 import Rent from "./pages/Rent"
 import Settings from "./pages/Settings"
 import Signup from "./pages/signuppage"
+import Reviews from "./pages/Reviews"
 import Terms from "./pages/Terms"
 import { useAuth } from "./context/AuthContext"
 
@@ -42,6 +43,7 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
+        <Route path="/reviews" element={<Reviews />} />
         <Route
           path="/favorites"
           element={
