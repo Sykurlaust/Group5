@@ -3,6 +3,7 @@ import type { FormEvent } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import Logo from "./Logo.jsx"
 import { useAuth } from "../context/AuthContext"
+import { subscribeUnreadConversationCount } from "../lib/chat"
 
 const navLinks = [
     { label: "Home", to: "/home" },
@@ -21,6 +22,7 @@ const Header = () => {
     const [searchValue, setSearchValue] = useState(currentSearchParam)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+    const [unreadMessageCount, setUnreadMessageCount] = useState(0)
     const profileMenuRef = useRef<HTMLDivElement | null>(null)
     const { firebaseUser, profile, logout, loading: authLoading } = useAuth()
     const isAuthenticated = Boolean(firebaseUser)
@@ -60,6 +62,24 @@ const Header = () => {
         document.addEventListener("mousedown", handleDocumentClick)
         return () => document.removeEventListener("mousedown", handleDocumentClick)
     }, [isProfileMenuOpen])
+
+    useEffect(() => {
+        if (!firebaseUser) {
+            setUnreadMessageCount(0)
+            return
+        }
+
+        const unsubscribe = subscribeUnreadConversationCount(
+            firebaseUser.uid,
+            (count) => setUnreadMessageCount(count),
+            (error) => {
+                console.error("Failed to subscribe unread message count", error)
+                setUnreadMessageCount(0)
+            },
+        )
+
+        return () => unsubscribe()
+    }, [firebaseUser])
 
     const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -156,10 +176,15 @@ const Header = () => {
                     Favorited
                 </Link>
                 <Link
-                    className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
+                    className="relative inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
                     to="/messages"
                 >
                     Messages
+                    {unreadMessageCount > 0 && (
+                        <span className="absolute right-2 top-2 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#ef4444] px-1 text-[10px] font-semibold text-white">
+                            {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                        </span>
+                    )}
                 </Link>
                 <Link
                     className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
@@ -286,11 +311,16 @@ const Header = () => {
                         Favorited
                     </Link>
                     <Link
-                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
+                        className="relative inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
                         to="/messages"
                         onClick={() => setIsMobileMenuOpen(false)}
                     >
                         Messages
+                        {unreadMessageCount > 0 && (
+                            <span className="absolute right-2 top-2 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#ef4444] px-1 text-[10px] font-semibold text-white">
+                                {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                            </span>
+                        )}
                     </Link>
                     <Link
                         className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"

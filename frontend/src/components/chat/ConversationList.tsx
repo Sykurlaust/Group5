@@ -53,7 +53,7 @@ const ConversationList = ({
                       />
                     ) : (
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#047857]/10 text-sm font-semibold text-[#047857]">
-                        {conversation.participant.avatarFallback}
+                        {conversation.participantName.slice(0, 1).toUpperCase()}
                       </div>
                     )}
 
@@ -62,12 +62,16 @@ const ConversationList = ({
                         <p className="line-clamp-1 text-sm font-semibold text-gray-900">
                           {conversation.listingTitle}
                         </p>
-                        <p className="shrink-0 text-xs text-gray-400">{conversation.lastMessageAt}</p>
+                        <p className="shrink-0 text-xs text-gray-400">
+                          {formatConversationTime(conversation.lastMessageAt)}
+                        </p>
                       </div>
-                      <p className="mt-1 line-clamp-1 text-sm text-gray-500">{conversation.lastMessage}</p>
+                      <p className="mt-1 line-clamp-1 text-sm text-gray-500">
+                        {conversation.lastMessage || "No messages yet"}
+                      </p>
                     </div>
 
-                    {Boolean(conversation.unreadCount) && (
+                    {conversation.unread && (
                       <span className="mt-1 inline-flex h-2.5 w-2.5 rounded-full bg-[#047857]" />
                     )}
                   </button>
@@ -79,6 +83,32 @@ const ConversationList = ({
       </div>
     </aside>
   )
+}
+
+const formatConversationTime = (value: number | null) => {
+  if (!value) {
+    return ""
+  }
+
+  const date = new Date(value)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMinutes = Math.floor(diffMs / (1000 * 60))
+
+  if (diffMinutes < 1) {
+    return "Now"
+  }
+  if (diffMinutes < 60) {
+    return `${diffMinutes}m`
+  }
+  if (diffMinutes < 24 * 60) {
+    return `${Math.floor(diffMinutes / 60)}h`
+  }
+  if (diffMinutes < 48 * 60) {
+    return "Yesterday"
+  }
+
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date)
 }
 
 export default ConversationList

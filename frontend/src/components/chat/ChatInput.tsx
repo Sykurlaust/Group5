@@ -4,19 +4,19 @@ import type { FormEvent } from "react"
 
 type ChatInputProps = {
   disabled?: boolean
-  onSend: (value: string) => void
+  onSend: (value: string) => Promise<void> | void
 }
 
 const ChatInput = ({ disabled = false, onSend }: ChatInputProps) => {
   const [value, setValue] = useState("")
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const nextValue = value.trim()
     if (!nextValue || disabled) {
       return
     }
-    onSend(nextValue)
+    await onSend(nextValue)
     setValue("")
   }
 

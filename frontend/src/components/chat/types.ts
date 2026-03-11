@@ -1,23 +1,22 @@
-export type ChatParticipant = {
-  name: string
-  subtitle: string
-  avatarFallback: string
-}
-
 export type ChatMessageItem = {
   id: string
-  sender: "me" | "other"
+  senderId: string
   text: string
-  timestamp: string
+  createdAt: number | null
 }
 
 export type ChatConversation = {
   id: string
+  listingId: string
   listingTitle: string
-  listingImage?: string
-  participant: ChatParticipant
+  listingImage: string
+  renterId: string
+  landlordId: string
+  participantName: string
+  participantSubtitle: string
   lastMessage: string
-  lastMessageAt: string
-  unreadCount?: number
-  messages: ChatMessageItem[]
+  lastMessageAt: number | null
+  lastSenderId: string
+  unreadBy: string[]
+  unread: boolean
 }
