@@ -1,50 +1,40 @@
-const FAVORITES_STORAGE_PREFIX = "gc-renting:favorites:"
+import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "firebase/firestore"
+import { db } from "./firebase"
+
 export const FAVORITES_UPDATED_EVENT = "gc-renting:favorites-updated"
 
-const isBrowser = () => typeof window !== "undefined"
+const favRef = (uid: string, listingId: string) =>
+  doc(db, "users", uid, "favorites", listingId)
 
-const getStorageKey = (uid: string) => `${FAVORITES_STORAGE_PREFIX}${uid}`
+const favsColRef = (uid: string) =>
+  collection(db, "users", uid, "favorites")
 
-const readFromStorage = (uid: string): string[] => {
-  if (!isBrowser()) {
-    return []
-  }
-
-  const rawValue = window.localStorage.getItem(getStorageKey(uid))
-  if (!rawValue) {
-    return []
-  }
-
-  try {
-    const parsed = JSON.parse(rawValue)
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-    return parsed.filter((entry): entry is string => typeof entry === "string")
-  } catch {
-    return []
+const dispatchUpdated = (uid: string) => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(FAVORITES_UPDATED_EVENT, { detail: { uid } }))
   }
 }
 
-const writeToStorage = (uid: string, listingIds: string[]) => {
-  if (!isBrowser()) {
-    return
+export const getFavoriteListingIds = async (uid: string): Promise<string[]> => {
+  const snap = await getDocs(favsColRef(uid))
+  return snap.docs.map((d) => d.id)
+}
+
+export const isListingFavorited = async (uid: string, listingId: string): Promise<boolean> => {
+  const snap = await getDoc(favRef(uid, listingId))
+  return snap.exists()
+}
+
+export const toggleFavoriteListing = async (uid: string, listingId: string): Promise<boolean> => {
+  const ref = favRef(uid, listingId)
+  const snap = await getDoc(ref)
+  if (snap.exists()) {
+    await deleteDoc(ref)
+    dispatchUpdated(uid)
+    return false
   }
-
-  window.localStorage.setItem(getStorageKey(uid), JSON.stringify(listingIds))
-  window.dispatchEvent(new CustomEvent(FAVORITES_UPDATED_EVENT, { detail: { uid } }))
+  await setDoc(ref, { addedAt: serverTimestamp() })
+  dispatchUpdated(uid)
+  return true
 }
 
-export const getFavoriteListingIds = (uid: string): string[] => readFromStorage(uid)
-
-export const isListingFavorited = (uid: string, listingId: string): boolean =>
-  readFromStorage(uid).includes(listingId)
-
-export const toggleFavoriteListing = (uid: string, listingId: string): boolean => {
-  const current = readFromStorage(uid)
-  const alreadyFavorited = current.includes(listingId)
-  const next = alreadyFavorited ? current.filter((id) => id !== listingId) : [...current, listingId]
-
-  writeToStorage(uid, next)
-  return !alreadyFavorited
-}
