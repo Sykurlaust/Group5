@@ -26,6 +26,7 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
   const { firebaseUser } = useAuth()
   const canOpenDetail = Boolean(listing.id)
   const [isFavorited, setIsFavorited] = useState(false)
+  const [isToggling, setIsToggling] = useState(false)
 
   useEffect(() => {
     if (!firebaseUser?.uid || !listing.id) {
@@ -33,14 +34,14 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
       return
     }
 
-    setIsFavorited(isListingFavorited(firebaseUser.uid, String(listing.id)))
+    void isListingFavorited(firebaseUser.uid, String(listing.id)).then(setIsFavorited)
 
     const handleFavoritesUpdated = (event: Event) => {
       const customEvent = event as CustomEvent<{ uid?: string }>
       if (customEvent.detail?.uid !== firebaseUser.uid) {
         return
       }
-      setIsFavorited(isListingFavorited(firebaseUser.uid, String(listing.id)))
+      void isListingFavorited(firebaseUser.uid, String(listing.id)).then(setIsFavorited)
     }
 
     window.addEventListener(FAVORITES_UPDATED_EVENT, handleFavoritesUpdated)
@@ -63,7 +64,7 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
     handleOpenDetail()
   }
 
-  const handleFavoriteToggle = (event: MouseEvent<HTMLButtonElement>) => {
+  const handleFavoriteToggle = async (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
     if (!listing.id) {
       return
@@ -72,9 +73,14 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
       navigate("/login")
       return
     }
-
-    const nextState = toggleFavoriteListing(firebaseUser.uid, String(listing.id))
-    setIsFavorited(nextState)
+    if (isToggling) return
+    setIsToggling(true)
+    try {
+      const nextState = await toggleFavoriteListing(firebaseUser.uid, String(listing.id))
+      setIsFavorited(nextState)
+    } finally {
+      setIsToggling(false)
+    }
   }
 
   const titleText = listing.title || "Untitled listing"
@@ -110,6 +116,7 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
             isFavorited ? "bg-amber-400 text-amber-900" : "bg-white/90 text-gray-600 hover:bg-white"
           }`}
           onClick={handleFavoriteToggle}
+          disabled={isToggling}
           type="button"
         >
           <svg className="h-5 w-5" fill={isFavorited ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
