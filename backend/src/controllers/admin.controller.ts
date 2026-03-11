@@ -1,9 +1,67 @@
 import type { Response } from "express"
 import type { AuthenticatedRequest } from "../middlewares/authenticate.js"
-import { listUsers, getUserByUid, updateUserRole, updateUserVerified, deleteUser } from "../services/admin.service.js"
+import {
+  listUsers,
+  getUserByUid,
+  updateUserRole,
+  updateUserVerified,
+  deleteUser,
+  createUserWithRole,
+} from "../services/admin.service.js"
 import type { UserRole } from "../models/user.model.js"
 
 const VALID_ROLES: UserRole[] = ["guest", "tenant", "landlord", "admin"]
+
+const normalizeRole = (role: unknown): UserRole | null => {
+  if (typeof role !== "string") {
+    return null
+  }
+  const normalized = role.toLowerCase().trim()
+  return VALID_ROLES.includes(normalized as UserRole) ? (normalized as UserRole) : null
+}
+
+export const createUser = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const displayName = typeof req.body?.displayName === "string" ? req.body.displayName.trim() : ""
+    const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : ""
+    const password = typeof req.body?.password === "string" ? req.body.password : ""
+    const phone = typeof req.body?.phone === "string" ? req.body.phone.trim() : undefined
+    const role = normalizeRole(req.body?.role) ?? "tenant"
+
+    if (!displayName) {
+      res.status(400).json({ error: "displayName is required" })
+      return
+    }
+
+    if (!email || !email.includes("@")) {
+      res.status(400).json({ error: "A valid email is required" })
+      return
+    }
+
+    if (password.trim().length < 6) {
+      res.status(400).json({ error: "Password must be at least 6 characters" })
+      return
+    }
+
+    const user = await createUserWithRole({
+      displayName,
+      email,
+      password: password.trim(),
+      phone: phone && phone.length > 0 ? phone : undefined,
+      role,
+    })
+
+    res.status(201).json({ user })
+  } catch (error) {
+    console.error("createUser error:", error)
+    const firebaseCode = typeof (error as { code?: string })?.code === "string" ? (error as { code?: string }).code : null
+    if (firebaseCode === "auth/email-already-exists") {
+      res.status(409).json({ error: "Email already exists" })
+      return
+    }
+    res.status(500).json({ error: "Failed to create user" })
+  }
+}
 
 export const getUsers = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -36,14 +94,14 @@ export const getUser = async (req: AuthenticatedRequest, res: Response): Promise
 export const patchUserRole = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const uid = String(req.params.uid)
-    const { role } = req.body
+    const normalizedRole = normalizeRole(req.body?.role)
 
-    if (!role || !VALID_ROLES.includes(role as UserRole)) {
+    if (!normalizedRole) {
       res.status(400).json({ error: `role must be one of: ${VALID_ROLES.join(", ")}` })
       return
     }
 
-    const user = await updateUserRole(uid, role as UserRole)
+    const user = await updateUserRole(uid, normalizedRole)
     if (!user) {
       res.status(404).json({ error: "User not found" })
       return
@@ -100,3 +158,4 @@ export const removeUser = async (req: AuthenticatedRequest, res: Response): Prom
     res.status(500).json({ error: "Failed to delete user" })
   }
 }
+

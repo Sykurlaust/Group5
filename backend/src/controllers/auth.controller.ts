@@ -71,3 +71,4 @@ export const updateMe = async (req: AuthenticatedRequest, res: Response): Promis
     res.status(500).json({ error: "Failed to update user profile" })
   }
 }
+
