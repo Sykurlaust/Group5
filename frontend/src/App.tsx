@@ -35,8 +35,6 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
-        <Route path="/messages" element={<MessagesPage />} />
-
         <Route
           path="/favorited"
           element={
@@ -49,7 +47,7 @@ function App() {
           path="/messages"
           element={
             <RequireAuth>
-              <Messages />
+              <MessagesPage />
             </RequireAuth>
           }
         />
@@ -80,6 +78,7 @@ function App() {
 
         <Route path="/dashboard" element={<Navigate replace to="/favorited" />} />
         <Route path="/dashboard/favorited" element={<Navigate replace to="/favorited" />} />
+        <Route path="/dashboard/renter" element={<Navigate replace to="/favorited" />} />
       </Routes>
     </BrowserRouter>
   )
