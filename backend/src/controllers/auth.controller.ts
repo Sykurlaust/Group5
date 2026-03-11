@@ -16,10 +16,6 @@ export const register = async (req: AuthenticatedRequest, res: Response): Promis
     }
 
     const { displayName } = req.body
-    if (!displayName || typeof displayName !== "string") {
-      res.status(400).json({ error: "displayName is required" })
-      return
-    }
 
     const user = await createUser({
       uid: req.user.uid,
@@ -63,17 +59,7 @@ export const updateMe = async (req: AuthenticatedRequest, res: Response): Promis
 
     const { displayName, phone, photoURL } = req.body
 
-    const updates: Record<string, string | null> = {}
-    if (typeof displayName === "string") updates.displayName = displayName.trim()
-    if (typeof phone === "string") updates.phone = phone.trim()
-    if (typeof photoURL === "string" || photoURL === null) updates.photoURL = photoURL
-
-    if (Object.keys(updates).length === 0) {
-      res.status(400).json({ error: "No valid fields to update" })
-      return
-    }
-
-    const user = await updateUser(req.user.uid, updates)
+    const user = await updateUser(req.user.uid, { displayName, phone, photoURL })
     if (!user) {
       res.status(404).json({ error: "User profile not found" })
       return
