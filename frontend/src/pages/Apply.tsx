@@ -41,7 +41,6 @@ const Apply = () => {
   const [submitting, setSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
-
   const canSubmit = useMemo(() => {
     return (
       formState.applicantDisplayName.trim().length >= 2 &&
@@ -52,6 +51,8 @@ const Apply = () => {
       formState.motivation.trim().length >= 20
     )
   }, [formState])
+
+  const submissionBlocked = submitting || !token
 
   const handleChange = (field: keyof ApplyFormState) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -93,14 +94,14 @@ const Apply = () => {
         return
       }
 
-      setSuccessMessage("Application submitted successfully. We will review it soon.")
+      setSuccessMessage("Application submitted successfully. Our team will review it soon.")
       setFormState((prev) => ({
         ...initialFormState,
         applicantDisplayName: prev.applicantDisplayName,
         applicantPhone: prev.applicantPhone,
       }))
     } catch (error) {
-      console.error("Failed to submit landlord application", error)
+      console.error("Failed to submit renter application", error)
       setErrorMessage("Could not submit your application. Please try again.")
     } finally {
       setSubmitting(false)
@@ -120,6 +121,12 @@ const Apply = () => {
           <p className="mt-2 text-sm text-gray-600">
             Fill out this form and your application will be stored in our database for review.
           </p>
+
+          {!token && (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              Please sign in to submit your rental application.
+            </div>
+          )}
 
           <form className="mt-6 grid gap-5" onSubmit={handleSubmit}>
             <div className="grid gap-5 sm:grid-cols-2">
@@ -193,10 +200,10 @@ const Apply = () => {
 
             <button
               className="inline-flex h-11 items-center justify-center rounded-full bg-[#047857] px-6 text-sm font-semibold text-white transition hover:bg-[#036c50] disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={submitting || !canSubmit}
+              disabled={submissionBlocked || !canSubmit}
               type="submit"
             >
-              {submitting ? "Submitting..." : "Submit application"}
+              {submitting ? "Submitting..." : token ? "Submit application" : "Sign in to apply"}
             </button>
           </form>
         </section>

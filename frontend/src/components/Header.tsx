@@ -34,6 +34,7 @@ const Header = () => {
         return (initials[0] ?? "G") + (initials[1] ?? initials[0] ?? "C")
     }, [accountDisplayName])
     const roleLabel = profile?.role ?? "guest"
+    const isAdmin = profile?.role === "admin"
 
     useEffect(() => {
         setSearchValue(currentSearchParam)
@@ -225,6 +226,14 @@ const Header = () => {
                                 <p className="text-xs uppercase tracking-wide text-gray-500">{roleLabel}</p>
                             </div>
 
+                            {isAdmin && (
+                                <Link
+                                    className="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                    to="/dashboard/admin"
+                                >
+                                    Dashboard
+                                </Link>
+                            )}
                             <Link
                                 className="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
                                 to="/account"
@@ -289,6 +298,15 @@ const Header = () => {
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
+                    {isAdmin && (
+                        <Link
+                            className="col-span-2 inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-4 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef]"
+                            to="/dashboard/admin"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            Dashboard
+                        </Link>
+                    )}
                     <Link
                         className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
                         to="/account"

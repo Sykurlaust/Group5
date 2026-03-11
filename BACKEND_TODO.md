@@ -158,7 +158,6 @@ type User = {
 | POST | `/api/auth/register` | Crear perfil de usuario tras primer login social/email | Bearer token |
 | GET | `/api/auth/me` | Obtener perfil del usuario autenticado | Bearer token |
 | PUT | `/api/auth/me` | Actualizar perfil propio | Bearer token |
-| POST | `/api/auth/role-request` | Solicitar cambio de rol (guest → tenant/landlord) | Bearer token |
 
 ### 2.4 Endpoints de Users (admin)
 | Método | Ruta | Descripción | Auth |

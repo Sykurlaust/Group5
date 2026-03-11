@@ -3,14 +3,7 @@ import type { ReactNode } from "react"
 import type { User } from "firebase/auth"
 import { onIdTokenChanged, signOut } from "firebase/auth"
 import { auth } from "../services/firebase"
-
-const getApiBaseUrl = (): string => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL
-  if (!baseUrl) {
-    throw new Error("VITE_API_BASE_URL is not defined. Please set it in your .env file.")
-  }
-  return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl
-}
+import { callAuthenticatedEndpoint } from "../lib/apiClient"
 
 export type UserRole = "admin" | "landlord" | "tenant" | "guest"
 
@@ -49,18 +42,8 @@ const buildDisplayName = (user: User): string => {
   return "Guest"
 }
 
-const callAuthEndpoint = async (token: string, path: string, init: RequestInit = {}) => {
-  const baseUrl = getApiBaseUrl()
-  const headers = new Headers((init.headers ?? undefined) as HeadersInit)
-  headers.set("Authorization", `Bearer ${token}`)
-
-  const shouldSetJsonHeader = init.body && !(init.body instanceof FormData)
-  if (shouldSetJsonHeader && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json")
-  }
-
-  return fetch(`${baseUrl}${path}`, { ...init, headers })
-}
+const callAuthEndpoint = async (token: string, path: string, init: RequestInit = {}) =>
+  callAuthenticatedEndpoint(token, path, init)
 
 const fetchProfile = async (token: string): Promise<UserProfile> => {
   const response = await callAuthEndpoint(token, "/auth/me")
