@@ -18,7 +18,7 @@ Use this guide to configure Firebase credentials for both the frontend (Vite) an
    - `VITE_FIREBASE_APP_ID`
    - `VITE_FIREBASE_MEASUREMENT_ID` (optional)
    - `VITE_API_BASE_URL` (e.g., `http://localhost:4000/api` for local Express)
-3. Restart Vite so `import.meta.env` picks up the new variables. The helper in `src/lib/firebase.ts` will validate that none are missing and expose `auth` + `db`.
+3. Restart Vite so `import.meta.env` picks up the new variables. The helper in `src/lib/firebase.ts` will validate that none are missing and expose `auth` + `db` + `storage`.
 
 ## 3. Backend environment file
 1. Duplicate `backend/.env.example` to `backend/.env`.
@@ -43,5 +43,24 @@ Use this guide to configure Firebase credentials for both the frontend (Vite) an
 - Start the backend (`cd backend && npm run dev`). You should *not* see errors about missing environment variables or service accounts.
 - Start the frontend (`cd frontend && npm run dev`). Open the browser console to confirm Firebase initializes only once.
 - (Optional) Sign into Firebase using another client, grab an ID token, and call a protected backend route with `Authorization: Bearer <token>` to confirm `authenticate` accepts it.
+
+## 6. Firebase Storage rules for profile pictures
+Profile images are uploaded to:
+
+`profilePictures/{uid}/{fileName}`
+
+If uploads fail with `storage/unauthorized`, configure Storage rules in Firebase Console so authenticated users can write only to their own folder:
+
+```txt
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /profilePictures/{uid}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
 
 Once these steps are complete, you can safely implement the UI login form and reuse the `auth` instance and backend token verification.

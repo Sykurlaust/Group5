@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { FormEvent } from "react"
+import { ChevronDown, LogOut, Settings as SettingsIcon, UserCircle2 } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import Logo from "./Logo.jsx"
 import { useAuth } from "../context/AuthContext"
@@ -197,52 +198,55 @@ const Header = () => {
                     <button
                         aria-expanded={isProfileMenuOpen}
                         aria-haspopup="menu"
-                        className="inline-flex h-11 items-center gap-2 rounded-full border border-white/40 bg-white/10 px-3 py-1.5 text-white transition hover:bg-white/20"
+                        className="group flex h-12 items-center gap-3 rounded-full border border-white/60 bg-white/10 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                         onClick={() => setIsProfileMenuOpen((prev) => !prev)}
                         type="button"
                     >
                         {profile?.photoURL ? (
                             <img
                                 alt={accountDisplayName || "Profile"}
-                                className="h-8 w-8 rounded-full object-cover"
+                                className="h-9 w-9 rounded-full object-cover"
                                 src={profile.photoURL}
                             />
                         ) : (
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-semibold text-white">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-sm font-bold text-white">
                                 {accountInitials}
                             </div>
                         )}
-                        <span className="max-w-[120px] truncate text-sm font-semibold">{accountDisplayName || "Account"}</span>
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <span className="max-w-[140px] truncate text-sm font-semibold">{accountDisplayName || "Account"}</span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${isProfileMenuOpen ? "rotate-180" : ""}`} />
                     </button>
 
                     {isProfileMenuOpen && (
-                        <div className="absolute right-0 z-40 mt-2 w-60 rounded-2xl border border-black/10 bg-white p-2 text-[#1f1f1f] shadow-xl">
-                            <div className="rounded-xl px-3 py-2">
-                                <p className="text-sm font-semibold">{accountDisplayName || "Your account"}</p>
-                                <p className="text-xs uppercase tracking-wide text-gray-500">{roleLabel}</p>
+                        <div className="absolute right-0 z-50 mt-3 w-72 rounded-[28px] border border-black/5 bg-white p-2 text-[#1f1f1f] shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
+                            <div className="rounded-2xl px-4 pb-3 pt-3">
+                                <p className="truncate text-sm font-semibold text-gray-900">{accountDisplayName || "Your account"}</p>
+                                <p className="mt-0.5 text-xs uppercase tracking-wide text-gray-400">{roleLabel}</p>
                             </div>
+                            <p className="px-4 pb-1 pt-1 text-sm font-medium text-gray-400">Account</p>
 
                             <Link
-                                className="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                                 to="/account"
                             >
-                                Account
+                                <UserCircle2 className="h-5 w-5 text-gray-500" />
+                                <span>My Profile</span>
                             </Link>
                             <Link
-                                className="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                                 to="/settings"
                             >
-                                Settings
+                                <SettingsIcon className="h-5 w-5 text-gray-500" />
+                                <span>Settings</span>
                             </Link>
+                            <div className="my-1 h-px bg-black/5" />
                             <button
-                                className="mt-1 block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+                                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
                                 onClick={handleLogout}
                                 type="button"
                             >
-                                Log out
+                                <LogOut className="h-5 w-5" />
+                                <span>Log out</span>
                             </button>
                         </div>
                     )}

@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ChangeEvent, FormEvent } from "react"
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
+import { updateProfile } from "firebase/auth"
 import { Helmet } from "react-helmet-async"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
 import { useAuth } from "../context/AuthContext"
-import { storage } from "../lib/firebase"
 
 type AccountFormState = {
   displayName: string
   phone: string
   photoURL: string
 }
+
+const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
+const MAX_PROFILE_IMAGE_DIMENSION = 640
+const MAX_PROFILE_IMAGE_DATA_URL_CHARS = 700_000
 
 const getApiBaseUrl = (): string => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL
@@ -94,13 +98,13 @@ const Account = () => {
       return
     }
 
-    if (!file.type.startsWith("image/")) {
-      setErrorMessage("Please choose an image file.")
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      setErrorMessage("Please choose a PNG, JPG, or WEBP image.")
       return
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setErrorMessage("Image must be 2MB or smaller.")
+    if (file.size > MAX_PROFILE_IMAGE_BYTES) {
+      setErrorMessage("Image must be 5MB or smaller.")
       return
     }
 
@@ -111,6 +115,7 @@ const Account = () => {
   }
 
   const clearPhoto = () => {
+    if (saving) return
     setFormState((prev) => ({ ...prev, photoURL: "" }))
     setSelectedPhotoName("")
     setSelectedPhotoFile(null)
@@ -129,24 +134,20 @@ const Account = () => {
     setSuccessMessage("")
 
     try {
-      const authToken = await withTimeout(
-        firebaseUser.getIdToken(true),
-        10000,
-        "Could not refresh your session. Please log out and log in again.",
-      )
+      const authToken = await withTimeout(firebaseUser.getIdToken(true), 10000, "Could not refresh your session. Please log out and log in again.")
 
       const uploadedPhotoUrl =
         selectedPhotoFile
           ? await withTimeout(
-              uploadProfilePhoto(firebaseUser.uid, selectedPhotoFile),
-              20000,
-              "Profile image upload timed out. Check your Firebase Storage rules and try again.",
+              buildProfilePhotoDataUrl(selectedPhotoFile),
+              15000,
+              "Image processing timed out. Please choose a smaller picture and try again.",
             )
           : formState.photoURL.trim() || null
 
       const payload = {
         displayName: formState.displayName.trim(),
-        phone: formState.phone.trim(),
+        phone: formState.phone.trim() || undefined,
         photoURL: uploadedPhotoUrl,
       }
 
@@ -171,6 +172,12 @@ const Account = () => {
         return
       }
 
+      if (uploadedPhotoUrl) {
+        await updateProfile(firebaseUser, { photoURL: uploadedPhotoUrl }).catch((error) => {
+          console.warn("Failed to mirror photo URL to Firebase Auth profile", error)
+        })
+      }
+
       await refreshProfile()
       setSelectedPhotoFile(null)
       setSelectedPhotoName("")
@@ -178,7 +185,7 @@ const Account = () => {
       setSuccessMessage("Account updated successfully.")
     } catch (error) {
       console.error("Failed to update account", error)
-      setErrorMessage(error instanceof Error ? error.message : "Could not update your account. Please try again.")
+      setErrorMessage(toFriendlyErrorMessage(error))
     } finally {
       setSaving(false)
       setSavePhase("idle")
@@ -212,13 +219,18 @@ const Account = () => {
               <input
                 accept="image/*"
                 className="sr-only"
+                disabled={saving}
                 id="profile-photo-file"
                 onChange={handlePhotoFileChange}
                 type="file"
               />
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <label
-                  className="inline-flex h-10 cursor-pointer items-center justify-center rounded-full border border-[#047857] bg-[#047857] px-4 text-xs font-semibold text-white transition hover:bg-[#036c50]"
+                  className={`inline-flex h-10 items-center justify-center rounded-full border border-[#047857] px-4 text-xs font-semibold text-white transition ${
+                    saving
+                      ? "cursor-not-allowed bg-[#047857]/70"
+                      : "cursor-pointer bg-[#047857] hover:bg-[#036c50]"
+                  }`}
                   htmlFor="profile-photo-file"
                 >
                   {selectedPhotoName ? "Choose another picture" : "Choose picture"}
@@ -233,6 +245,7 @@ const Account = () => {
               <button
                 className="rounded-full border border-black/15 px-4 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
                 onClick={clearPhoto}
+                disabled={saving}
                 type="button"
               >
                 Remove picture
@@ -304,7 +317,7 @@ const Account = () => {
             >
               {saving
                 ? savePhase === "uploading"
-                  ? "Uploading picture..."
+                  ? "Processing picture..."
                   : "Saving account..."
                 : hasChanges
                   ? "Save changes"
@@ -319,13 +332,67 @@ const Account = () => {
   )
 }
 
-const sanitizeFileName = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, "_")
+const toFriendlyErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    if (error instanceof TypeError && error.message.toLowerCase().includes("fetch")) {
+      return "Could not save account changes because the backend API is unreachable. Check VITE_API_BASE_URL and make sure the backend is running."
+    }
+    return error.message
+  }
 
-const uploadProfilePhoto = async (uid: string, file: File): Promise<string> => {
-  const timestamp = Date.now()
-  const fileRef = ref(storage, `profile-photos/${uid}/${timestamp}-${sanitizeFileName(file.name)}`)
-  await uploadBytes(fileRef, file, { contentType: file.type })
-  return getDownloadURL(fileRef)
+  return "Could not update your account. Please try again."
+}
+
+const readFileAsDataUrl = async (file: File): Promise<string> => {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "")
+    reader.onerror = () => reject(new Error("Could not read selected image file."))
+    reader.readAsDataURL(file)
+  })
+}
+
+const loadImage = async (src: string): Promise<HTMLImageElement> => {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error("Could not process selected image file."))
+    img.src = src
+  })
+}
+
+const buildProfilePhotoDataUrl = async (file: File): Promise<string> => {
+  const sourceDataUrl = await readFileAsDataUrl(file)
+  const image = await loadImage(sourceDataUrl)
+
+  const sourceWidth = image.naturalWidth || image.width
+  const sourceHeight = image.naturalHeight || image.height
+  const maxSourceDimension = Math.max(sourceWidth, sourceHeight) || 1
+  const scale = Math.min(1, MAX_PROFILE_IMAGE_DIMENSION / maxSourceDimension)
+  const targetWidth = Math.max(1, Math.round(sourceWidth * scale))
+  const targetHeight = Math.max(1, Math.round(sourceHeight * scale))
+
+  const canvas = document.createElement("canvas")
+  canvas.width = targetWidth
+  canvas.height = targetHeight
+
+  const context = canvas.getContext("2d")
+  if (!context) {
+    return sourceDataUrl
+  }
+
+  context.drawImage(image, 0, 0, targetWidth, targetHeight)
+
+  let output = canvas.toDataURL("image/jpeg", 0.85)
+  if (output.length > MAX_PROFILE_IMAGE_DATA_URL_CHARS) {
+    output = canvas.toDataURL("image/jpeg", 0.65)
+  }
+
+  if (output.length > MAX_PROFILE_IMAGE_DATA_URL_CHARS) {
+    throw new Error("Selected image is too large after optimization. Please choose a smaller image.")
+  }
+
+  return output
 }
 
 const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> => {
