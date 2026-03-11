@@ -1,11 +1,23 @@
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
+} from "firebase/firestore"
+import { db } from "../lib/firebase"
 import { useEffect, useState } from "react"
 import { Helmet } from "react-helmet-async"
 import { Link } from "react-router-dom"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 import { useAuth } from "../context/AuthContext"
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api"
 
 type Review = {
   id: string
@@ -16,7 +28,7 @@ type Review = {
   title: string
   comment: string
   listingId: string
-  createdAt: { _seconds: number } | null
+  createdAt: unknown
 }
 
 const StarRating = ({
@@ -168,7 +180,7 @@ const ReviewForm = ({
 }
 
 const Reviews = () => {
-  const { profile, token, loading: authLoading } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [formOpen, setFormOpen] = useState(false)
@@ -179,9 +191,9 @@ const Reviews = () => {
   const fetchReviews = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${API_BASE}/reviews?limit=50`)
-      const data = await res.json()
-      setReviews(data.reviews ?? [])
+      const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"), limit(50))
+      const snap = await getDocs(q)
+      setReviews(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Review)))
     } catch {
       setError("Failed to load reviews.")
     } finally {
@@ -197,40 +209,40 @@ const Reviews = () => {
     comment: string
     listingId: string
   }) => {
-    if (!token || !profile) return
+    if (!profile) return
     setSubmitting(true)
     setError(null)
 
     try {
       if (editing) {
-        await fetch(`${API_BASE}/reviews/${editing.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ rating: data.rating, title: data.title, comment: data.comment }),
+        await updateDoc(doc(db, "reviews", editing.id), {
+          rating: data.rating,
+          title: data.title,
+          comment: data.comment,
         })
       } else {
-        const res = await fetch(`${API_BASE}/reviews/listing/${data.listingId}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            rating: data.rating,
-            title: data.title,
-            comment: data.comment,
-            userName: profile.displayName,
-            userPhoto: profile.photoURL,
-          }),
+        const existingSnap = await getDocs(
+          query(
+            collection(db, "reviews"),
+            where("userId", "==", profile.uid),
+            where("listingId", "==", "general"),
+          ),
+        )
+        if (!existingSnap.empty) {
+          setError("You have already submitted a review.")
+          setSubmitting(false)
+          return
+        }
+        await addDoc(collection(db, "reviews"), {
+          userId: profile.uid,
+          userName: profile.displayName,
+          userPhoto: profile.photoURL ?? null,
+          rating: data.rating,
+          title: data.title,
+          comment: data.comment,
+          listingId: "general",
+          createdAt: serverTimestamp(),
         })
-        if (res.status === 409) {
-          setError("You have already reviewed this listing.")
-          setSubmitting(false)
-          return
-        }
-        if (!res.ok) {
-          const err = await res.json()
-          setError(err.error ?? "Failed to submit review.")
-          setSubmitting(false)
-          return
-        }
       }
 
       setFormOpen(false)
@@ -244,14 +256,11 @@ const Reviews = () => {
   }
 
   const handleDelete = async (id: string) => {
-    if (!token) return
+    if (!profile) return
     if (!window.confirm("Are you sure you want to delete this review?")) return
 
     try {
-      await fetch(`${API_BASE}/reviews/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await deleteDoc(doc(db, "reviews", id))
       await fetchReviews()
     } catch {
       setError("Failed to delete review.")

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ChangeEvent, FormEvent } from "react"
-import { updateProfile } from "firebase/auth"
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { Helmet } from "react-helmet-async"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
 import { useAuth } from "../context/AuthContext"
+import { storage } from "../lib/firebase"
 
 type AccountFormState = {
   displayName: string
@@ -17,13 +18,6 @@ const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 const MAX_PROFILE_IMAGE_DIMENSION = 640
 const MAX_PROFILE_IMAGE_DATA_URL_CHARS = 700_000
 
-const getApiBaseUrl = (): string => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL
-  if (!baseUrl) {
-    throw new Error("VITE_API_BASE_URL is not defined. Please set it in your .env file.")
-  }
-  return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl
-}
 
 const Account = () => {
   const { profile, firebaseUser, refreshProfile } = useAuth()
@@ -134,7 +128,11 @@ const Account = () => {
     setSuccessMessage("")
 
     try {
-      const authToken = await withTimeout(firebaseUser.getIdToken(true), 10000, "Could not refresh your session. Please log out and log in again.")
+      const authToken = await withTimeout(
+        firebaseUser.getIdToken(true),
+        10000,
+        "Could not refresh your session. Please log out and log in again.",
+      )
 
       const uploadedPhotoUrl =
         selectedPhotoFile
@@ -147,7 +145,7 @@ const Account = () => {
 
       const payload = {
         displayName: formState.displayName.trim(),
-        phone: formState.phone.trim() || undefined,
+        phone: formState.phone.trim(),
         photoURL: uploadedPhotoUrl,
       }
 
@@ -170,12 +168,6 @@ const Account = () => {
       if (!response.ok) {
         setErrorMessage(data?.error ?? "Failed to update account.")
         return
-      }
-
-      if (uploadedPhotoUrl) {
-        await updateProfile(firebaseUser, { photoURL: uploadedPhotoUrl }).catch((error) => {
-          console.warn("Failed to mirror photo URL to Firebase Auth profile", error)
-        })
       }
 
       await refreshProfile()
@@ -413,20 +405,5 @@ const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, timeoutMe
   })
 }
 
-const fetchWithTimeout = async (url: string, init: RequestInit): Promise<Response> => {
-  const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), 15000)
-
-  try {
-    return await fetch(url, { ...init, signal: controller.signal })
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("Saving account timed out. Please check that backend API is running and try again.")
-    }
-    throw error
-  } finally {
-    window.clearTimeout(timeoutId)
-  }
-}
 
 export default Account

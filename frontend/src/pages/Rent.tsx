@@ -392,26 +392,17 @@ const parsePrice = (value: unknown): number | null => {
   if (typeof value === "number") {
     return Number.isFinite(value) ? Math.round(value) : null
   }
-
   if (typeof value !== "string") {
     return null
   }
-
   const cleaned = value
     .toLowerCase()
     .replace(/\/\s*month|per\s*month|monthly|\/\s*mes|al\s*mes/g, "")
     .replace(/[^\d.,]/g, "")
     .trim()
-
-  if (!cleaned) {
-    return null
-  }
-
+  if (!cleaned) return null
   const digits = cleaned.replace(/[.,]/g, "")
-  if (!digits) {
-    return null
-  }
-
+  if (!digits) return null
   const parsed = Number.parseInt(digits, 10)
   return Number.isNaN(parsed) ? null : parsed
 }

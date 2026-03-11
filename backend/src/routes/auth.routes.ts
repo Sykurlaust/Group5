@@ -9,5 +9,4 @@ const router = Router()
 router.post("/register", authenticate, validate(registerSchema), register)
 router.get("/me", authenticate, getMe)
 router.put("/me", authenticate, validate(updateProfileSchema), updateMe)
-
 export default router
