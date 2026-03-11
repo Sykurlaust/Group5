@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp } from "firebase/app"
-import { getAuth } from "firebase/auth"
+import { getAuth, setPersistence, browserSessionPersistence } from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
 
 type FirebaseEnvKey =
@@ -31,4 +31,8 @@ const firebaseConfig = {
 
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
 export const auth = getAuth(app)
+
+void setPersistence(auth, browserSessionPersistence).catch((error) => {
+  console.warn("Failed to set auth persistence to session", error)
+})
 export const db = getFirestore(app)
