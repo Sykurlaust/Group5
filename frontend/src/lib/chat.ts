@@ -5,6 +5,7 @@ import {
   collection,
   doc,
   getDoc,
+  getCountFromServer,
   onSnapshot,
   query,
   serverTimestamp,
@@ -142,6 +143,12 @@ export const subscribeUnreadConversationCount = (
     (snapshot) => onData(snapshot.size),
     (error) => onError?.(error),
   )
+}
+
+export const fetchUnreadConversationCount = async (userId: string): Promise<number> => {
+  const unreadQuery = query(collection(db, "conversations"), where("unreadBy", "array-contains", userId))
+  const aggregateSnapshot = await getCountFromServer(unreadQuery)
+  return aggregateSnapshot.data().count
 }
 
 export const subscribeConversationMessages = (

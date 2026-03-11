@@ -4,7 +4,7 @@ import { ChevronDown, LogOut, Settings as SettingsIcon, UserCircle2 } from "luci
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import Logo from "./Logo.jsx"
 import { useAuth } from "../context/AuthContext"
-import { subscribeUnreadConversationCount } from "../lib/chat"
+import { fetchUnreadConversationCount } from "../lib/chat"
 
 const navLinks = [
     { label: "Home", to: "/home" },
@@ -65,23 +65,33 @@ const Header = () => {
         return () => document.removeEventListener("mousedown", handleDocumentClick)
     }, [isProfileMenuOpen])
 
-    useEffect(() => {
-        if (!firebaseUser) {
+  useEffect(() => {
+    if (!firebaseUser) {
+      setUnreadMessageCount(0)
+      return
+    }
+
+    let isCancelled = false
+    const timeoutId = window.setTimeout(() => {
+      void fetchUnreadConversationCount(firebaseUser.uid)
+        .then((count) => {
+          if (!isCancelled) {
+            setUnreadMessageCount(count)
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to fetch unread message count", error)
+          if (!isCancelled) {
             setUnreadMessageCount(0)
-            return
-        }
+          }
+        })
+    }, 800)
 
-        const unsubscribe = subscribeUnreadConversationCount(
-            firebaseUser.uid,
-            (count) => setUnreadMessageCount(count),
-            (error) => {
-                console.error("Failed to subscribe unread message count", error)
-                setUnreadMessageCount(0)
-            },
-        )
-
-        return () => unsubscribe()
-    }, [firebaseUser])
+    return () => {
+      isCancelled = true
+      window.clearTimeout(timeoutId)
+    }
+  }, [firebaseUser?.uid, location.pathname])
 
     const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
