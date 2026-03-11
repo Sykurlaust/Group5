@@ -36,7 +36,10 @@ const Favorites = () => {
     const loadFavorites = async () => {
       setLoading(true)
       try {
-        const favoriteIds = await getFavoriteListingIds(firebaseUser.uid)
+        const favoriteIds = await getFavoriteListingIds(firebaseUser.uid).catch((err) => {
+          console.error("[Favorites] Failed to get favorite IDs:", err)
+          return [] as string[]
+        })
         if (favoriteIds.length === 0) {
           setFavoriteListings([])
           return

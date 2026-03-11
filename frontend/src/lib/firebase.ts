@@ -1,6 +1,6 @@
 import { getApp, getApps, initializeApp } from "firebase/app"
 import { getAuth, setPersistence, browserSessionPersistence } from "firebase/auth"
-import { getFirestore } from "firebase/firestore"
+import { getFirestore, initializeFirestore, persistentLocalCache } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
 
 type FirebaseEnvKey =
@@ -36,5 +36,18 @@ export const auth = getAuth(app)
 void setPersistence(auth, browserSessionPersistence).catch((error) => {
   console.warn("Failed to set auth persistence to session", error)
 })
-export const db = getFirestore(app)
+
+// Guard against Vite HMR re-evaluation: initializeFirestore throws if called
+// on an already-initialized app. Fall back to getFirestore which returns the
+// existing instance (which retains any cache settings from the first call).
+const initDb = () => {
+  try {
+    return initializeFirestore(app, {
+      localCache: persistentLocalCache(),
+    })
+  } catch {
+    return getFirestore(app)
+  }
+}
+export const db = initDb()
 export const storage = getStorage(app)
