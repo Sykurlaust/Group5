@@ -100,7 +100,7 @@ const Apply = () => {
         applicantPhone: prev.applicantPhone,
       }))
     } catch (error) {
-      console.error("Failed to submit renter application", error)
+      console.error("Failed to submit landlord application", error)
       setErrorMessage("Could not submit your application. Please try again.")
     } finally {
       setSubmitting(false)
@@ -116,7 +116,7 @@ const Apply = () => {
 
       <main className="mx-auto w-full max-w-4xl px-6 pb-16 pt-10">
         <section className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm md:p-8">
-          <h1 className="text-2xl font-semibold md:text-3xl">Apply to be a renter</h1>
+          <h1 className="text-2xl font-semibold md:text-3xl">Apply to be a landlord</h1>
           <p className="mt-2 text-sm text-gray-600">
             Fill out this form and your application will be stored in our database for review.
           </p>
@@ -183,7 +183,7 @@ const Apply = () => {
               <textarea
                 className="mt-2 min-h-36 w-full rounded-xl border border-black/15 px-4 py-3 text-sm outline-none focus:border-[#047857]"
                 onChange={handleChange("motivation")}
-                placeholder="Write your renter profile, stability, and why you are a good fit..."
+                placeholder="Write your landlord profile, experience, and why you are a good fit..."
                 value={formState.motivation}
               />
             </label>

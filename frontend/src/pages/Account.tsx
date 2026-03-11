@@ -71,10 +71,16 @@ const Account = () => {
 
   const accountKind = useMemo(() => {
     const role = (profile?.role ?? "guest").toLowerCase()
-    const isSeller = role === "landlord" || role === "admin"
-    return isSeller
-      ? { label: "Seller", helper: "Verified seller account", checkmark: true }
-      : { label: "Buyer", helper: "Buyer account", checkmark: true }
+    switch (role) {
+      case "admin":
+        return { label: "Admin", helper: "Full access — manages the entire platform" }
+      case "landlord":
+        return { label: "Landlord", helper: "Property owner — lists and rents out properties" }
+      case "tenant":
+        return { label: "Tenant", helper: "Looking to rent a property" }
+      default:
+        return { label: "Guest", helper: "No account — browsing only" }
+    }
   }, [profile?.role])
 
   const handleChange = (field: keyof AccountFormState) =>
