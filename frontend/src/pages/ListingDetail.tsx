@@ -379,7 +379,6 @@ const mapDetailListingFromDoc = (id: string, data: Record<string, unknown>): Lis
 }
 
 const readOwnerId = (data: Record<string, unknown>) =>
-  // Imported listings may not include owner uid yet; this checks common owner keys first.
   readString(data.landlordId) ||
   readString(data.ownerId) ||
   readString(data.ownerUid) ||

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ChangeEvent, FormEvent } from "react"
+import { doc, updateDoc } from "firebase/firestore"
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { Helmet } from "react-helmet-async"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
 import { useAuth } from "../context/AuthContext"
-import { storage } from "../lib/firebase"
+import { db, storage } from "../lib/firebase"
 
 type AccountFormState = {
   displayName: string
@@ -13,13 +14,6 @@ type AccountFormState = {
   photoURL: string
 }
 
-const getApiBaseUrl = (): string => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL
-  if (!baseUrl) {
-    throw new Error("VITE_API_BASE_URL is not defined. Please set it in your .env file.")
-  }
-  return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl
-}
 
 const Account = () => {
   const { profile, firebaseUser, refreshProfile } = useAuth()
@@ -129,12 +123,6 @@ const Account = () => {
     setSuccessMessage("")
 
     try {
-      const authToken = await withTimeout(
-        firebaseUser.getIdToken(true),
-        10000,
-        "Could not refresh your session. Please log out and log in again.",
-      )
-
       const uploadedPhotoUrl =
         selectedPhotoFile
           ? await withTimeout(
@@ -146,31 +134,12 @@ const Account = () => {
 
       const payload = {
         displayName: formState.displayName.trim(),
-        phone: formState.phone.trim(),
+        phone: formState.phone.trim() || null,
         photoURL: uploadedPhotoUrl,
       }
 
       setSavePhase("saving")
-
-      const response = await fetchWithTimeout(`${getApiBaseUrl()}/auth/me`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(payload),
-      })
-
-      const data = await response.json().catch(() => ({}))
-      if (response.status === 401) {
-        setErrorMessage("Your session expired. Please log out and log in again.")
-        return
-      }
-      if (!response.ok) {
-        setErrorMessage(data?.error ?? "Failed to update account.")
-        return
-      }
-
+      await updateDoc(doc(db, "users", firebaseUser.uid), payload)
       await refreshProfile()
       setSelectedPhotoFile(null)
       setSelectedPhotoName("")
@@ -346,20 +315,5 @@ const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, timeoutMe
   })
 }
 
-const fetchWithTimeout = async (url: string, init: RequestInit): Promise<Response> => {
-  const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), 15000)
-
-  try {
-    return await fetch(url, { ...init, signal: controller.signal })
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("Saving account timed out. Please check that backend API is running and try again.")
-    }
-    throw error
-  } finally {
-    window.clearTimeout(timeoutId)
-  }
-}
 
 export default Account
