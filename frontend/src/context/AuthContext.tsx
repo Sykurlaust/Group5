@@ -12,13 +12,30 @@ const getApiBaseUrl = (): string => {
   return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl
 }
 
+export type UserRole = "admin" | "landlord" | "tenant" | "guest"
+
+const normalizeUserRole = (role: unknown): UserRole => {
+  if (typeof role !== "string") {
+    return "guest"
+  }
+
+  const normalized = role.toLowerCase()
+  if (normalized === "renter") {
+    return "tenant"
+  }
+
+  return normalized === "admin" || normalized === "landlord" || normalized === "tenant"
+    ? normalized
+    : "guest"
+}
+
 const mapUserProfile = (payload: any): UserProfile => ({
   uid: payload.uid,
   email: payload.email,
   displayName: payload.displayName,
   photoURL: payload.photoURL ?? null,
   phone: payload.phone ?? null,
-  role: payload.role ?? "guest",
+  role: normalizeUserRole(payload.role),
   verified: Boolean(payload.verified),
 })
 
@@ -80,7 +97,7 @@ export interface UserProfile {
   displayName: string
   photoURL: string | null
   phone: string | null
-  role: string
+  role: UserRole
   verified: boolean
 }
 

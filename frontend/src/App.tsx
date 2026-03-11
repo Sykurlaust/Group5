@@ -1,7 +1,11 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import AppLayout from "./admin/layout/AppLayout"
+import AdminDashboard from "./admin/pages/AdminDashboard"
+import LandlordDashboard from "./admin/pages/LandlordDashboard"
 import RenterDashboard from "./admin/pages/RenterDashboard"
 import ScrollToTop from "./components/ScrollToTop"
 import RequireAuth from "./components/RequireAuth"
+import RequireRole from "./components/RequireRole"
 import Account from "./pages/Account"
 import AboutUs from "./pages/AboutUs"
 import Apply from "./pages/Apply"
@@ -17,6 +21,7 @@ import Rent from "./pages/Rent"
 import Settings from "./pages/Settings"
 import Signup from "./pages/signuppage"
 import Terms from "./pages/Terms"
+import { useAuth } from "./context/AuthContext"
 
 function App() {
   return (
@@ -39,7 +44,9 @@ function App() {
           path="/favorited"
           element={
             <RequireAuth>
-              <RenterDashboard />
+              <RequireRole allowedRoles={["tenant", "admin"]} redirectTo="/account">
+                <RenterDashboard />
+              </RequireRole>
             </RequireAuth>
           }
         />
@@ -76,12 +83,65 @@ function App() {
           }
         />
 
-        <Route path="/dashboard" element={<Navigate replace to="/favorited" />} />
-        <Route path="/dashboard/favorited" element={<Navigate replace to="/favorited" />} />
-        <Route path="/dashboard/renter" element={<Navigate replace to="/favorited" />} />
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAuth>
+              <AppLayout />
+            </RequireAuth>
+          }
+        >
+          <Route index element={<DashboardLanding />} />
+          <Route
+            path="admin"
+            element={
+              <RequireRole allowedRoles={["admin"]} redirectTo="/dashboard">
+                <AdminDashboard />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="landlord"
+            element={
+              <RequireRole allowedRoles={["landlord", "admin"]} redirectTo="/dashboard">
+                <LandlordDashboard />
+              </RequireRole>
+            }
+          />
+          <Route path="renter" element={<Navigate replace to="/favorited" />} />
+          <Route path="favorited" element={<Navigate replace to="/favorited" />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )
 }
 
 export default App
+
+const DashboardLanding = () => {
+  const { loading, profile } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center text-sm text-gray-500">
+        Redirecting to your workspace...
+      </div>
+    )
+  }
+
+  const role = profile?.role ?? "guest"
+
+  if (role === "admin") {
+    return <Navigate replace to="/dashboard/admin" />
+  }
+
+  if (role === "landlord") {
+    return <Navigate replace to="/dashboard/landlord" />
+  }
+
+  if (role === "tenant") {
+    return <Navigate replace to="/favorited" />
+  }
+
+  return <Navigate replace to="/home" />
+}
