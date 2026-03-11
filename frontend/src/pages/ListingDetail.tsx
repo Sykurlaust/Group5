@@ -8,6 +8,7 @@ import Header from "../components/Header"
 import SimilarListings from "../components/SimilarListings"
 import type { SimilarListing } from "../components/SimilarListings"
 import { useAuth } from "../context/AuthContext"
+import { createOrGetConversation } from "../lib/chat"
 import { db } from "../lib/firebase"
 
 type ListingDetailData = {
@@ -29,6 +30,7 @@ type ListingDetailData = {
   totalMoveInCost: string
   landlordName: string
   landlordImage: string
+  landlordId: string
   description: string
   image: string
   url: string
@@ -43,13 +45,15 @@ type SimilarCandidate = SimilarListing & {
 
 const ListingDetail = () => {
   const navigate = useNavigate()
-  const { firebaseUser } = useAuth()
+  const { firebaseUser, profile } = useAuth()
   const { id } = useParams<{ id: string }>()
   const [listing, setListing] = useState<ListingDetailData | null>(null)
   const [similarListings, setSimilarListings] = useState<SimilarListing[]>([])
   const [similarLoading, setSimilarLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [messageActionState, setMessageActionState] = useState("")
+  const [openingConversation, setOpeningConversation] = useState(false)
 
   useEffect(() => {
     // Main listing fetch for the detail page.
@@ -128,6 +132,44 @@ const ListingDetail = () => {
 
     void loadSimilarListings()
   }, [listing])
+
+  const handleMessageLandlord = async () => {
+    if (!listing) {
+      return
+    }
+    if (!firebaseUser) {
+      navigate("/login")
+      return
+    }
+    if (!listing.landlordId) {
+      setMessageActionState("Landlord account is not linked to this listing yet.")
+      return
+    }
+    if (firebaseUser.uid === listing.landlordId) {
+      setMessageActionState("You cannot message yourself from your own listing.")
+      return
+    }
+
+    setOpeningConversation(true)
+    setMessageActionState("")
+    try {
+      const conversationId = await createOrGetConversation({
+        listingId: listing.id,
+        listingTitle: listing.title,
+        listingImage: listing.image,
+        renterId: firebaseUser.uid,
+        landlordId: listing.landlordId,
+        renterName: profile?.displayName ?? firebaseUser.displayName ?? firebaseUser.email ?? "Renter",
+        landlordName: listing.landlordName || "Property owner",
+      })
+      navigate(`/messages?conversation=${encodeURIComponent(conversationId)}`)
+    } catch (conversationError) {
+      console.error("Failed to create/open conversation", conversationError)
+      setMessageActionState("Could not open chat right now. Please try again.")
+    } finally {
+      setOpeningConversation(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f5f0] text-[#1f1f1f]">
@@ -244,7 +286,15 @@ const ListingDetail = () => {
                     <ContactLandlordCard
                       landlordImage={listing.landlordImage}
                       landlordName={listing.landlordName || "Property owner"}
-                      onMessage={() => navigate(firebaseUser ? "/messages" : "/login")}
+                      messageDisabled={openingConversation || (Boolean(firebaseUser) && (!listing.landlordId || firebaseUser?.uid === listing.landlordId))}
+                      messageDisabledReason={messageActionState}
+                      onMessage={handleMessageLandlord}
+                      subtitle={buildLandlordSubtitle({
+                        isLoggedIn: Boolean(firebaseUser),
+                        phone: listing.phone,
+                        hasOwnerAccount: Boolean(listing.landlordId),
+                        isSelfListing: Boolean(firebaseUser && listing.landlordId && firebaseUser.uid === listing.landlordId),
+                      })}
                     />
                   </aside>
                 </div>
@@ -321,11 +371,20 @@ const mapDetailListingFromDoc = (id: string, data: Record<string, unknown>): Lis
     totalMoveInCost: readString(data.totalMoveInCost),
     landlordName: readString(data.landlordName) || readString(data.ownerName) || readString(data.contactName),
     landlordImage: readString(data.landlordImage) || readString(data.ownerImage),
+    landlordId: readOwnerId(data),
     description: readString(data.description),
     image: readString(data.image),
     url: readString(data.url),
   }
 }
+
+const readOwnerId = (data: Record<string, unknown>) =>
+  // Imported listings may not include owner uid yet; this checks common owner keys first.
+  readString(data.landlordId) ||
+  readString(data.ownerId) ||
+  readString(data.ownerUid) ||
+  readString(data.userId) ||
+  readString(data.uid)
 
 const mapSimilarCandidateFromDoc = (id: string, data: Record<string, unknown>): SimilarCandidate => {
   const title = readString(data.title) || "Untitled listing"
@@ -380,6 +439,32 @@ const formatMonthlyRent = (price: number | null, currency: string) => {
 
 const hasFacts = (listing: ListingDetailData) => {
   return listing.bedrooms !== null || listing.area !== null || Boolean(listing.floor)
+}
+
+const buildLandlordSubtitle = ({
+  isLoggedIn,
+  phone,
+  hasOwnerAccount,
+  isSelfListing,
+}: {
+  isLoggedIn: boolean
+  phone: string
+  hasOwnerAccount: boolean
+  isSelfListing: boolean
+}) => {
+  if (!isLoggedIn) {
+    return "Contact available after login"
+  }
+  if (isSelfListing) {
+    return "This listing belongs to your account"
+  }
+  if (!hasOwnerAccount) {
+    return "Landlord account not linked yet"
+  }
+  if (phone) {
+    return phone
+  }
+  return "Message this owner to discuss availability"
 }
 
 const formatSource = (source: string) => {

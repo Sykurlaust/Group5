@@ -1,89 +1,172 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import ChatWindow from "../components/chat/ChatWindow"
 import ConversationList from "../components/chat/ConversationList"
-import type { ChatConversation } from "../components/chat/types"
+import type { ChatConversation, ChatMessageItem } from "../components/chat/types"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
-import sampleImage from "../assets/reiseuhu-W_7-oQmwyuw-unsplash.jpg"
-
-const initialConversations: ChatConversation[] = [
-  {
-    id: "conv-1",
-    listingTitle: "Flat / apartment in Las Palmas",
-    listingImage: sampleImage,
-    participant: {
-      name: "Marina López",
-      subtitle: "Landlord",
-      avatarFallback: "ML",
-    },
-    lastMessage: "Great, I can offer a viewing this Thursday at 18:00.",
-    lastMessageAt: "2m",
-    unreadCount: 1,
-    messages: [
-      { id: "m-1", sender: "other", text: "Hi Diogo, thanks for your interest in the apartment.", timestamp: "10:14" },
-      { id: "m-2", sender: "me", text: "Thanks Marina. Is it still available from next month?", timestamp: "10:18" },
-      { id: "m-3", sender: "other", text: "Yes, availability starts on the 1st.", timestamp: "10:20" },
-      { id: "m-4", sender: "me", text: "Perfect. Could we arrange a viewing this week?", timestamp: "10:21" },
-      { id: "m-5", sender: "other", text: "Great, I can offer a viewing this Thursday at 18:00.", timestamp: "10:22" },
-    ],
-  },
-  {
-    id: "conv-2",
-    listingTitle: "Apartment near Maspalomas dunes",
-    participant: {
-      name: "Carlos Medina",
-      subtitle: "Landlord",
-      avatarFallback: "CM",
-    },
-    lastMessage: "Please send your preferred move-in date.",
-    lastMessageAt: "1h",
-    messages: [
-      { id: "m-6", sender: "other", text: "Hello! I saw your request for the Maspalomas apartment.", timestamp: "09:02" },
-      { id: "m-7", sender: "me", text: "Hi Carlos, yes. I’m looking for long-term from summer.", timestamp: "09:10" },
-      { id: "m-8", sender: "other", text: "Please send your preferred move-in date.", timestamp: "09:12" },
-    ],
-  },
-  {
-    id: "conv-3",
-    listingTitle: "City center one-bedroom in Telde",
-    participant: {
-      name: "Elena Cruz",
-      subtitle: "Landlord",
-      avatarFallback: "EC",
-    },
-    lastMessage: "The contract can be 12 months minimum.",
-    lastMessageAt: "Yesterday",
-    messages: [
-      { id: "m-9", sender: "me", text: "Hi Elena, can you confirm the minimum contract length?", timestamp: "Yesterday" },
-      { id: "m-10", sender: "other", text: "The contract can be 12 months minimum.", timestamp: "Yesterday" },
-    ],
-  },
-]
+import { useAuth } from "../context/AuthContext"
+import {
+  markConversationAsRead,
+  sendConversationMessage,
+  subscribeConversationMessages,
+  subscribeUserConversations,
+} from "../lib/chat"
 
 const MessagesPage = () => {
-  const [conversations, setConversations] = useState<ChatConversation[]>(initialConversations)
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(
-    initialConversations[0]?.id ?? null,
-  )
+  const { firebaseUser } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const conversationFromQuery = searchParams.get("conversation")
+  const [conversations, setConversations] = useState<ChatConversation[]>([])
+  const [messages, setMessages] = useState<ChatMessageItem[]>([])
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
+  const [loadingConversations, setLoadingConversations] = useState(true)
+  const [loadingMessages, setLoadingMessages] = useState(false)
   const [isMobileLayout, setIsMobileLayout] = useState(false)
   const [showConversationListOnMobile, setShowConversationListOnMobile] = useState(true)
+  const [invalidConversationRequested, setInvalidConversationRequested] = useState(false)
+  const [sendError, setSendError] = useState("")
+  const [isSending, setIsSending] = useState(false)
+  const [conversationsError, setConversationsError] = useState("")
+  const hasInitializedUpdatesRef = useRef(false)
+  const lastConversationActivityRef = useRef<Record<string, number>>({})
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 1023px)")
     const syncLayout = (event: MediaQueryList | MediaQueryListEvent) => {
       const isMobile = event.matches
       setIsMobileLayout(isMobile)
-      setShowConversationListOnMobile(isMobile ? activeConversationId === null : true)
+      if (!isMobile) {
+        setShowConversationListOnMobile(true)
+      } else if (!activeConversationId) {
+        setShowConversationListOnMobile(true)
+      }
     }
 
     syncLayout(mediaQuery)
     const listener = (event: MediaQueryListEvent) => syncLayout(event)
     mediaQuery.addEventListener("change", listener)
-
-    return () => {
-      mediaQuery.removeEventListener("change", listener)
-    }
+    return () => mediaQuery.removeEventListener("change", listener)
   }, [activeConversationId])
+
+  useEffect(() => {
+    if (!firebaseUser) {
+      setLoadingConversations(false)
+      return
+    }
+
+    setLoadingConversations(true)
+    setConversationsError("")
+
+    const unsubscribe = subscribeUserConversations(
+      firebaseUser.uid,
+      (nextConversations) => {
+        setConversations(nextConversations)
+        setLoadingConversations(false)
+
+        if (hasInitializedUpdatesRef.current) {
+          for (const conversation of nextConversations) {
+            const previous = lastConversationActivityRef.current[conversation.id] ?? 0
+            const latest = conversation.lastMessageAt ?? 0
+            const isIncoming = conversation.lastSenderId !== firebaseUser.uid
+            if (conversation.unread && isIncoming && latest > previous) {
+              playIncomingMessageTone()
+              break
+            }
+          }
+        } else {
+          hasInitializedUpdatesRef.current = true
+        }
+
+        lastConversationActivityRef.current = Object.fromEntries(
+          nextConversations.map((conversation) => [conversation.id, conversation.lastMessageAt ?? 0]),
+        )
+      },
+      (error) => {
+        console.error("Failed to subscribe conversations", error)
+        setConversationsError("Could not load your conversations right now.")
+        setLoadingConversations(false)
+      },
+    )
+
+    return () => unsubscribe()
+  }, [firebaseUser])
+
+  useEffect(() => {
+    if (!conversations.length) {
+      setActiveConversationId(null)
+      setMessages([])
+      setInvalidConversationRequested(Boolean(conversationFromQuery))
+      return
+    }
+
+    if (conversationFromQuery) {
+      const exists = conversations.some((conversation) => conversation.id === conversationFromQuery)
+      if (exists) {
+        setInvalidConversationRequested(false)
+        setActiveConversationId(conversationFromQuery)
+        if (isMobileLayout) {
+          setShowConversationListOnMobile(false)
+        }
+      } else {
+        setInvalidConversationRequested(true)
+        setActiveConversationId(null)
+        setMessages([])
+      }
+      return
+    }
+
+    setInvalidConversationRequested(false)
+    setActiveConversationId((current) => {
+      if (current && conversations.some((conversation) => conversation.id === current)) {
+        return current
+      }
+      return conversations[0]?.id ?? null
+    })
+  }, [conversationFromQuery, conversations, isMobileLayout])
+
+  useEffect(() => {
+    if (!activeConversationId) {
+      setMessages([])
+      return
+    }
+
+    setLoadingMessages(true)
+    setSendError("")
+
+    const unsubscribe = subscribeConversationMessages(
+      activeConversationId,
+      (nextMessages) => {
+        setMessages(nextMessages)
+        setLoadingMessages(false)
+      },
+      (error) => {
+        console.error("Failed to subscribe messages", error)
+        setLoadingMessages(false)
+        setSendError("Could not load messages for this conversation.")
+      },
+    )
+
+    if (firebaseUser) {
+      void markConversationAsRead(activeConversationId, firebaseUser.uid).catch((error) => {
+        console.error("Failed to mark conversation as read", error)
+      })
+    }
+
+    return () => unsubscribe()
+  }, [activeConversationId, firebaseUser])
+
+  useEffect(() => {
+    if (!activeConversationId || !conversationFromQuery) {
+      return
+    }
+    if (conversationFromQuery === activeConversationId) {
+      return
+    }
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set("conversation", activeConversationId)
+    setSearchParams(nextParams, { replace: true })
+  }, [activeConversationId, conversationFromQuery, searchParams, setSearchParams])
 
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeConversationId) ?? null,
@@ -92,40 +175,48 @@ const MessagesPage = () => {
 
   const handleSelectConversation = (conversationId: string) => {
     setActiveConversationId(conversationId)
+    setInvalidConversationRequested(false)
+
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set("conversation", conversationId)
+    setSearchParams(nextParams, { replace: true })
+
     if (isMobileLayout) {
       setShowConversationListOnMobile(false)
     }
-    setConversations((current) =>
-      current.map((conversation) =>
-        conversation.id === conversationId ? { ...conversation, unreadCount: 0 } : conversation,
-      ),
-    )
   }
 
-  const handleSendMessage = (messageValue: string) => {
-    if (!activeConversationId) {
+  const handleSendMessage = async (messageValue: string) => {
+    if (!firebaseUser || !activeConversation) {
       return
     }
 
-    const nextMessage = {
-      id: `m-${Date.now()}`,
-      sender: "me" as const,
-      text: messageValue,
-      timestamp: "Now",
+    const recipientId =
+      firebaseUser.uid === activeConversation.renterId
+        ? activeConversation.landlordId
+        : activeConversation.renterId
+
+    if (!recipientId) {
+      setSendError("This conversation is missing recipient data.")
+      return
     }
 
-    setConversations((current) =>
-      current.map((conversation) =>
-        conversation.id === activeConversationId
-          ? {
-              ...conversation,
-              lastMessage: messageValue,
-              lastMessageAt: "Now",
-              messages: [...conversation.messages, nextMessage],
-            }
-          : conversation,
-      ),
-    )
+    setSendError("")
+    setIsSending(true)
+    try {
+      await sendConversationMessage({
+        conversationId: activeConversation.id,
+        senderId: firebaseUser.uid,
+        recipientId,
+        text: messageValue,
+      })
+      await markConversationAsRead(activeConversation.id, firebaseUser.uid)
+    } catch (error) {
+      console.error("Failed to send message", error)
+      setSendError("Message failed to send. Please try again.")
+    } finally {
+      setIsSending(false)
+    }
   }
 
   return (
@@ -146,18 +237,56 @@ const MessagesPage = () => {
             {(!isMobileLayout || !showConversationListOnMobile) && (
               <ChatWindow
                 activeConversation={activeConversation}
+                currentUserId={firebaseUser?.uid ?? ""}
+                invalidConversationRequested={invalidConversationRequested}
                 isMobileView={isMobileLayout}
+                loadingMessages={loadingMessages}
+                messages={messages}
                 onBackToList={() => setShowConversationListOnMobile(true)}
                 onSendMessage={handleSendMessage}
+                sendDisabled={!activeConversation || isSending}
+                sendDisabledReason={sendError}
               />
             )}
           </div>
         </section>
+
+        {(loadingConversations || conversationsError) && (
+          <div className="mt-4 rounded-2xl border border-black/5 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm">
+            {loadingConversations ? "Loading conversations..." : conversationsError}
+          </div>
+        )}
       </main>
 
       <Footer />
     </div>
   )
+}
+
+const playIncomingMessageTone = () => {
+  if (typeof window === "undefined") {
+    return
+  }
+  const AudioContextImpl = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+  if (!AudioContextImpl) {
+    return
+  }
+
+  const context = new AudioContextImpl()
+  const oscillator = context.createOscillator()
+  const gainNode = context.createGain()
+
+  oscillator.type = "sine"
+  oscillator.frequency.value = 840
+  gainNode.gain.value = 0.02
+  oscillator.connect(gainNode)
+  gainNode.connect(context.destination)
+
+  oscillator.start()
+  oscillator.stop(context.currentTime + 0.08)
+  oscillator.onended = () => {
+    void context.close()
+  }
 }
 
 export default MessagesPage

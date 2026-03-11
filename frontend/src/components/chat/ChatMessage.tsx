@@ -2,10 +2,12 @@ import type { ChatMessageItem } from "./types"
 
 type ChatMessageProps = {
   message: ChatMessageItem
+  currentUserId: string
 }
 
-const ChatMessage = ({ message }: ChatMessageProps) => {
-  const isOwnMessage = message.sender === "me"
+const ChatMessage = ({ message, currentUserId }: ChatMessageProps) => {
+  const isOwnMessage = message.senderId === currentUserId
+  const timestamp = formatMessageTime(message.createdAt)
 
   return (
     <div className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
@@ -20,11 +22,21 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
           {message.text}
         </p>
         <p className={`mt-1 text-[11px] text-gray-400 ${isOwnMessage ? "text-right" : "text-left"}`}>
-          {message.timestamp}
+          {timestamp}
         </p>
       </div>
     </div>
   )
+}
+
+const formatMessageTime = (value: number | null) => {
+  if (!value) {
+    return "Now"
+  }
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value))
 }
 
 export default ChatMessage
