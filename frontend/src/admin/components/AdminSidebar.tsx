@@ -1,9 +1,17 @@
 import { NavLink } from "react-router-dom"
+import { useAuth, type UserRole } from "../../context/AuthContext"
 import { useAdminSidebar } from "../context/AdminSidebarContext"
 import { cn } from "./cn"
 
-const navItems = [
-  { label: "Favorited", to: "/dashboard/favorited" },
+type SidebarNavItem = {
+  label: string
+  to: string
+  roles?: UserRole[]
+}
+
+const navItems: SidebarNavItem[] = [
+  { label: "Admin Overview", to: "/dashboard/admin", roles: ["admin"] },
+  { label: "Landlord Console", to: "/dashboard/landlord", roles: ["admin", "landlord"] },
 ]
 
 const sidebarBase =
@@ -11,6 +19,9 @@ const sidebarBase =
 
 const AdminSidebar = () => {
   const { closeSidebar, isSidebarOpen } = useAdminSidebar()
+  const { profile } = useAuth()
+  const role: UserRole = profile?.role ?? "guest"
+  const availableNavItems = navItems.filter((item) => !item.roles || item.roles.includes(role))
 
   return (
     <>
@@ -37,7 +48,7 @@ const AdminSidebar = () => {
         </div>
 
         <nav className="space-y-2">
-          {navItems.map((item) => (
+          {availableNavItems.map((item) => (
             <NavLink
               className={({ isActive }) =>
                 cn(
