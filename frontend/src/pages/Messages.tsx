@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async"
-import { doc, getDoc } from "firebase/firestore"
+import { doc, getDoc, type DocumentData, type QueryDocumentSnapshot } from "firebase/firestore"
 import { useEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
 import Footer from "../components/Footer"
@@ -48,17 +48,21 @@ const Messages = () => {
     const loadSellerListings = async () => {
       setLoading(true)
       try {
-        const favoriteIds = getFavoriteListingIds(firebaseUser.uid)
+        const favoriteIds = await getFavoriteListingIds(firebaseUser.uid)
         if (favoriteIds.length === 0) {
           setListings([])
           setSelectedListingId("")
           return
         }
 
-        const snapshots = await Promise.all(favoriteIds.map((id) => getDoc(doc(db, "listings", id))))
+        const snapshots = await Promise.all(
+          favoriteIds.map((id: string) => getDoc(doc(db, "listings", id))),
+        )
         const nextListings = snapshots
-          .filter((snapshot) => snapshot.exists())
-          .map((snapshot) => {
+          .filter(
+            (snapshot): snapshot is QueryDocumentSnapshot<DocumentData> => snapshot.exists(),
+          )
+          .map((snapshot: QueryDocumentSnapshot<DocumentData>) => {
             const data = snapshot.data()
             const sellerName =
               readString(data.landlordName) || readString(data.ownerName) || readString(data.contactName) || "Property Seller"
@@ -75,7 +79,7 @@ const Messages = () => {
             } satisfies SellerListing
           })
 
-        const order = new Map(favoriteIds.map((id, index) => [id, index]))
+        const order = new Map(favoriteIds.map((id: string, index: number) => [id, index]))
         nextListings.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
         setListings(nextListings)
 
@@ -85,6 +89,11 @@ const Messages = () => {
           }
           return nextListings[0]?.id ?? ""
         })
+      } catch (error) {
+        console.error("Firestore request failed while loading seller listings:", error)
+        setListings([])
+        setSelectedListingId("")
+        setNotice("Could not load seller listings right now.")
       } finally {
         setLoading(false)
       }

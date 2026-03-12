@@ -1,4 +1,6 @@
 import { Outlet } from "react-router-dom"
+import "flatpickr/dist/flatpickr.min.css"
+import "swiper/css"
 import AdminHeader from "../components/AdminHeader"
 import AdminSidebar from "../components/AdminSidebar"
 import { AdminSidebarProvider } from "../context/AdminSidebarContext"

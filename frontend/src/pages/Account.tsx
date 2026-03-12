@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ChangeEvent, FormEvent } from "react"
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { Helmet } from "react-helmet-async"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
 import { resolveUserRole, useAuth } from "../context/AuthContext"
-import { storage } from "../lib/firebase"
+import { getApiBaseUrl } from "../lib/apiClient"
 
 type AccountFormState = {
   displayName: string
@@ -17,6 +16,7 @@ const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 const MAX_PROFILE_IMAGE_DIMENSION = 640
 const MAX_PROFILE_IMAGE_DATA_URL_CHARS = 700_000
+const API_BASE_URL = getApiBaseUrl()
 
 
 const Account = () => {
@@ -151,14 +151,18 @@ const Account = () => {
 
       setSavePhase("saving")
 
-      const response = await fetchWithTimeout(`${getApiBaseUrl()}/auth/me`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(payload),
-      })
+      const response = await withTimeout(
+        fetch(`${API_BASE_URL}/auth/me`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify(payload),
+        }),
+        10000,
+        "Request timed out",
+      )
 
       const data = await response.json().catch(() => ({}))
       if (response.status === 401) {

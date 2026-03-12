@@ -6,14 +6,14 @@ const Footer = () => {
 			<h1 className="sr-only">Footer</h1>
 			<div className="mx-auto grid max-w-6xl gap-10 px-6 py-12 lg:grid-cols-4">
 				<div className="space-y-4">
-					<div className="flex items-center gap-3">
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#047857] font-semibold text-white">
-							GC
-						</div>
-						<div>
-							<p className="font-semibold">GC-Renting</p>
-							<p className="text-xs uppercase text-gray-500">Premium Rentals</p>
-						</div>
+					<div className="flex items-center gap-2">
+						<img
+							alt="GC Renting icon"
+							className="h-10 w-auto object-contain"
+							src="/gc-renting-logo.svg"
+							style={{ filter: "brightness(0)" }}
+						/>
+						<span className="text-xl font-semibold tracking-tight text-[#1f1f1f]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>GC Renting</span>
 					</div>
 					<div className="flex gap-3 text-gray-600">
 						<a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#047857]" aria-label="Instagram">

@@ -100,7 +100,12 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
           <img
             alt=""
             className="h-full w-full object-cover"
+            decoding="async"
+            height={224}
+            loading="lazy"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             src={listing.image}
+            width={400}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-500">

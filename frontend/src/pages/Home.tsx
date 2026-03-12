@@ -3,8 +3,9 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
+import HomepageSupportChatbot from "../components/HomepageSupportChatbot"
 import ListingCard from "../components/ListingCard"
-import heroImage from "../assets/reiseuhu-W_7-oQmwyuw-unsplash.jpg"
+import heroImage from "../assets/reiseuhu-W_7-oQmwyuw-unsplash-hero.jpg"
 import { db } from "../lib/firebase"
 
 type HomeReview = {
@@ -104,22 +105,39 @@ const Home = () => {
         // ignore
       }
     }
-    void loadReviews()
+
+    const timeoutId = window.setTimeout(() => {
+      void loadReviews()
+    }, 1200)
+
+    return () => window.clearTimeout(timeoutId)
   }, [])
 
 	return (
 		<div className="min-h-screen bg-[#f5f5f0] text-[#1f1f1f] font-['Space_Grotesk']">
 			<Header />
+      <HomepageSupportChatbot />
 			<main id="home">
 			<section className="mx-auto mt-10 grid w-full max-w-7xl items-center gap-8 px-4 sm:px-6 lg:mt-14 lg:grid-cols-2 lg:gap-12" id="rent">
 				<div className="order-2 space-y-4 lg:order-1">
-					<p className="text-base font-semibold text-[#1f1f1f]">Rent</p>
-					<p className="max-w-[26ch] text-3xl leading-relaxed text-[#1f1f1f] sm:text-4xl">
-						Long-term rental properties in Gran Canaria. A great selection of property to rent in the best locations of the island, and professional support for landlords.
+					<p className="max-w-[30ch] text-2xl font-medium leading-snug tracking-tight text-[#1f1f1f] sm:text-3xl">
+						Long-term rental properties in Gran Canaria.
+					</p>
+					<p className="max-w-[48ch] text-base font-normal leading-relaxed text-[#4a4a4a]">
+						A curated selection of apartments and flats in the best locations across the island — from Las Palmas to Maspalomas. Whether you're relocating, settling down, or looking for your next home, we make finding the right rental simple and stress-free.
 					</p>
 				</div>
 				<div className="relative order-1 mx-auto h-64 w-full overflow-hidden rounded-[28px] sm:h-80 lg:order-2 lg:h-[26rem]">
-					<img alt="Gran Canaria cliffs" className="h-full w-full object-cover" src={heroImage} />
+					<img
+            alt="Gran Canaria cliffs"
+            className="h-full w-full object-cover"
+            decoding="async"
+            fetchPriority="high"
+            height={900}
+            loading="eager"
+            src={heroImage}
+            width={1200}
+          />
 					<div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center text-[#1f1f1f]">
 						<div className="flex flex-col gap-3 text-4xl font-semibold uppercase tracking-tight drop-shadow-sm sm:text-5xl">
 							<span className="mx-auto rounded-[6px] bg-[#5fd0bb] px-6 py-2">Gran</span>
@@ -198,7 +216,15 @@ const Home = () => {
                   <p className="line-clamp-3 text-sm text-gray-600">{review.comment}</p>
                   <div className="mt-auto flex items-center gap-2 pt-2">
                     {review.userPhoto ? (
-                      <img src={review.userPhoto} alt={review.userName} className="h-8 w-8 rounded-full object-cover" />
+                      <img
+                        alt={review.userName}
+                        className="h-8 w-8 rounded-full object-cover"
+                        decoding="async"
+                        height={32}
+                        loading="lazy"
+                        src={review.userPhoto}
+                        width={32}
+                      />
                     ) : (
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#047857] text-xs font-semibold text-white">
                         {review.userName.charAt(0).toUpperCase()}

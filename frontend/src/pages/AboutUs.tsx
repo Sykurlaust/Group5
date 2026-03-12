@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import lukasImage from '../assets/lukasface/Lukasface.png'
 
 const AboutUs: React.FC = () => {
+	const [storyExpanded, setStoryExpanded] = useState(false)
 	const teamMembers = [
 		{
 			name: 'Emily',
@@ -72,9 +73,16 @@ const AboutUs: React.FC = () => {
 							<p className="text-gray-600 mb-4">
 								Founded in 2026, we started with a simple mission: to make finding the perfect rental property in Gran Canaria easy, transparent, and enjoyable. What began as a small team passionate about real estate has grown into a trusted platform connecting thousands of tenants with their ideal homes.
 							</p>
-							<p className="text-gray-600">
+						<p className={`text-gray-600 ${storyExpanded ? 'block' : 'hidden sm:block'}`}>
 							We understand that finding a home is more than just a transaction. It is about finding a place where memories are made, where you feel safe, and where you belong. That is why we go the extra mile to ensure every property meets our high standards and every client receives personalized attention.
-							</p>
+						</p>
+						<button
+							className="mt-3 text-sm font-semibold text-[#047857] sm:hidden"
+							onClick={() => setStoryExpanded(prev => !prev)}
+							type="button"
+						>
+							{storyExpanded ? 'Read less ↑' : 'Read more ↓'}
+						</button>
 						</div>
 						<div className="rounded-[30px] overflow-hidden shadow-lg">
 							<img
@@ -140,23 +148,7 @@ const AboutUs: React.FC = () => {
 					</div>
 				</section>
 
-				{/* Stats Section */}
-				<section className="rounded-[40px] border border-black/5 bg-gradient-to-r from-[#047857] to-[#3f37f0] px-8 py-12 shadow-lg text-white">
-					<div className="grid gap-8 sm:grid-cols-3 text-center">
-						<div>
-							<div className="text-4xl font-bold mb-2">500+</div>
-							<p className="text-white/90">Properties Listed</p>
-						</div>
-						<div>
-							<div className="text-4xl font-bold mb-2">2,500+</div>
-							<p className="text-white/90">Happy Clients</p>
-						</div>
-						<div>
-							<div className="text-4xl font-bold mb-2">15+</div>
-							<p className="text-white/90">Municipalities Covered</p>
-						</div>
-					</div>
-				</section>
+				{/* Stats Section - removed */}
 			</main>
 
 			<Footer />
