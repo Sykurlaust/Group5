@@ -122,8 +122,16 @@ const Account = () => {
       return
     }
 
+    const trimmedDisplayName = formState.displayName.trim()
+    const trimmedPhone = formState.phone.trim()
+    const normalizedInitialDisplayName = initialFormState.displayName.trim()
+    const normalizedInitialPhone = initialFormState.phone.trim()
+    const normalizedInitialPhoto = initialFormState.photoURL.trim() || null
+    const currentPhotoValue = formState.photoURL.trim() || null
+    const shouldProcessPhoto = Boolean(selectedPhotoFile) || currentPhotoValue !== normalizedInitialPhoto
+
     setSaving(true)
-    setSavePhase(selectedPhotoFile ? "uploading" : "saving")
+    setSavePhase(shouldProcessPhoto && selectedPhotoFile ? "uploading" : "saving")
     setErrorMessage("")
     setSuccessMessage("")
 
@@ -134,19 +142,38 @@ const Account = () => {
         "Could not refresh your session. Please log out and log in again.",
       )
 
-      const uploadedPhotoUrl =
-        selectedPhotoFile
-          ? await withTimeout(
-              buildProfilePhotoDataUrl(selectedPhotoFile),
-              15000,
-              "Image processing timed out. Please choose a smaller picture and try again.",
-            )
-          : formState.photoURL.trim() || null
+      const payload: {
+        displayName?: string
+        phone?: string | null
+        photoURL?: string | null
+      } = {}
 
-      const payload = {
-        displayName: formState.displayName.trim(),
-        phone: formState.phone.trim(),
-        photoURL: uploadedPhotoUrl,
+      if (trimmedDisplayName !== normalizedInitialDisplayName) {
+        payload.displayName = trimmedDisplayName
+      }
+
+      if (trimmedPhone !== normalizedInitialPhone) {
+        payload.phone = trimmedPhone.length > 0 ? trimmedPhone : null
+      }
+
+      if (shouldProcessPhoto) {
+        if (selectedPhotoFile) {
+          const processedPhoto = await withTimeout(
+            buildProfilePhotoDataUrl(selectedPhotoFile),
+            15000,
+            "Image processing timed out. Please choose a smaller picture and try again.",
+          )
+          payload.photoURL = processedPhoto
+        } else {
+          payload.photoURL = currentPhotoValue
+        }
+      }
+
+      if (Object.keys(payload).length === 0) {
+        setSaving(false)
+        setSavePhase("idle")
+        setSuccessMessage("No changes to save.")
+        return
       }
 
       setSavePhase("saving")

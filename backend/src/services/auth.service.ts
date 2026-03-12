@@ -80,12 +80,20 @@ export const updateUser = async (
 
   if (!doc.exists) return null
 
-  const updates = {
-    ...data,
-    updatedAt: Timestamp.now(),
+  const sanitizedUpdates: Partial<User> = {}
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      sanitizedUpdates[key as keyof User] = value as User[keyof User]
+    }
   }
 
-  await docRef.update(updates)
+  if (Object.keys(sanitizedUpdates).length === 0) {
+    return doc.data() as User
+  }
+
+  sanitizedUpdates.updatedAt = Timestamp.now()
+
+  await docRef.update(sanitizedUpdates)
 
   const updated = await docRef.get()
   return updated.data() as User

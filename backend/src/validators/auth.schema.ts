@@ -22,10 +22,14 @@ export const updateProfileSchema = z
       .max(80, "Display name must not exceed 80 characters")
       .optional(),
     phone: z
-      .string()
-      .trim()
-      .min(7, "Phone number must be at least 7 digits")
-      .max(20, "Phone number must not exceed 20 digits")
+      .union([
+        z
+          .string()
+          .trim()
+          .min(7, "Phone number must be at least 7 digits")
+          .max(20, "Phone number must not exceed 20 digits"),
+        z.literal(null),
+      ])
       .optional(),
     photoURL: z
       .union([z.string().trim().url("Photo URL must be a valid URL"), imageDataUrlSchema, z.literal(null)])
