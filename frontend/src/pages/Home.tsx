@@ -120,9 +120,11 @@ const Home = () => {
 			<main id="home">
 			<section className="mx-auto mt-10 grid w-full max-w-7xl items-center gap-8 px-4 sm:px-6 lg:mt-14 lg:grid-cols-2 lg:gap-12" id="rent">
 				<div className="order-2 space-y-4 lg:order-1">
-					<p className="text-base font-semibold text-[#1f1f1f]">Rent</p>
-					<p className="max-w-[26ch] text-3xl leading-relaxed text-[#1f1f1f] sm:text-4xl">
-						Long-term rental properties in Gran Canaria. A great selection of property to rent in the best locations of the island, and professional support for landlords.
+					<p className="max-w-[30ch] text-2xl font-medium leading-snug tracking-tight text-[#1f1f1f] sm:text-3xl">
+						Long-term rental properties in Gran Canaria.
+					</p>
+					<p className="max-w-[48ch] text-base font-normal leading-relaxed text-[#4a4a4a]">
+						A curated selection of apartments and flats in the best locations across the island — from Las Palmas to Maspalomas. Whether you're relocating, settling down, or looking for your next home, we make finding the right rental simple and stress-free.
 					</p>
 				</div>
 				<div className="relative order-1 mx-auto h-64 w-full overflow-hidden rounded-[28px] sm:h-80 lg:order-2 lg:h-[26rem]">

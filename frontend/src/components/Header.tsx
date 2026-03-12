@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { FormEvent } from "react"
-import { ChevronDown, LogOut, Settings as SettingsIcon, UserCircle2 } from "lucide-react"
+import { ChevronDown, LayoutDashboard, LogOut, Settings as SettingsIcon, UserCircle2 } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import Logo from "./Logo.jsx"
 import { useAuth } from "../context/AuthContext"
 import { fetchUnreadConversationCount } from "../lib/chat"
 
@@ -240,25 +239,25 @@ const Header = () => {
                                 <p className="truncate text-sm font-semibold text-gray-900">{accountDisplayName || "Your account"}</p>
                                 <p className="mt-0.5 text-xs uppercase tracking-wide text-gray-400">{roleLabel}</p>
                             </div>
-                            <p className="px-4 pb-1 pt-1 text-sm font-medium text-gray-400">Account</p>
 
                             {isAdmin && (
                                 <Link
-                                    className="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
                                     to="/dashboard/admin"
                                 >
-                                    Dashboard
+                                    <LayoutDashboard className="h-5 w-5 text-gray-500" />
+                                    <span>Dashboard</span>
                                 </Link>
                             )}
                             <Link
-                                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
                                 to="/account"
                             >
                                 <UserCircle2 className="h-5 w-5 text-gray-500" />
                                 <span>My Profile</span>
                             </Link>
                             <Link
-                                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
                                 to="/settings"
                             >
                                 <SettingsIcon className="h-5 w-5 text-gray-500" />
@@ -386,10 +385,11 @@ const Header = () => {
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between gap-4 py-3 lg:py-4">
                         <Link className="shrink-0" to="/home" aria-label="Go to homepage">
-                            <Logo
-                                className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
-                                variant="navbar"
-                                width="clamp(146px, 15vw, 218px)"
+                            <img
+                                alt="GC Renting"
+                                className="h-10 w-auto object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+                                src="/gc-renting-logo.svg"
+                                style={{ filter: "brightness(0) invert(1)" }}
                             />
                         </Link>
 
