@@ -2,7 +2,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from "react"
 import type { User } from "firebase/auth"
 import { onIdTokenChanged, signOut } from "firebase/auth"
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore"
 import { auth } from "../services/firebase"
+import { db } from "../lib/firebase"
 
 export type UserRole = "guest" | "tenant" | "landlord" | "admin"
 const FORCED_ADMIN_EMAIL = "admin@gcrenting.com"
@@ -95,6 +97,28 @@ const ensureProfile = async (user: User, token: string): Promise<UserProfile> =>
   return mapUserProfile(data.user, user.email ?? "")
 }
 
+const ensureFirestoreUserDocument = async (user: User): Promise<void> => {
+  const userRef = doc(db, "users", user.uid)
+  const snapshot = await getDoc(userRef)
+
+  if (snapshot.exists()) {
+    return
+  }
+
+  const email = user.email ?? ""
+  await setDoc(userRef, {
+    uid: user.uid,
+    email,
+    displayName: buildDisplayName(user),
+    photoURL: user.photoURL ?? null,
+    phone: user.phoneNumber ?? null,
+    role: resolveUserRole(email, "tenant"),
+    verified: false,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+}
+
 export interface UserProfile {
   uid: string
   email: string
@@ -148,6 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const freshToken = await user.getIdToken()
         setToken(freshToken)
+        await ensureFirestoreUserDocument(user)
         await syncProfile(user, freshToken)
       } catch (err) {
         console.error("Failed to sync auth state", err)

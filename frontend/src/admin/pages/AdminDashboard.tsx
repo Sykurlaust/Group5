@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
-import { collection, deleteDoc, doc, getCountFromServer, getDocs, limit, orderBy, query, updateDoc, where } from "firebase/firestore"
+import { collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, updateDoc } from "firebase/firestore"
+import { Link } from "react-router-dom"
 import { db } from "../../lib/firebase"
 import { Helmet } from "react-helmet-async"
 import AdminHighlights from "../components/AdminHighlights"
@@ -9,25 +10,19 @@ import DateRangeInput from "../components/DateRangeInput"
 import { useAuth } from "../../context/AuthContext"
 import type { UserRole } from "../../context/AuthContext"
 import {
+  type AdminDashboardStats,
   type AdminUserRecord,
   deleteAdminUser,
+  fetchAdminDashboardStats,
   listAdminUsers,
+  updateAdminApplicationStatus,
   updateAdminUserRole,
   updateAdminUserVerification,
 } from "../../lib/adminUsers"
 
-type DashboardStats = {
-  landlords: number
-  approvedApplications: number
-  reviews: number
-  weeklyVisits: number
-  dailyVisitSeries: number[]
-  dailyVisitLabels: string[]
-}
-
-const defaultDashboardStats: DashboardStats = {
+const defaultDashboardStats: AdminDashboardStats = {
   landlords: 0,
-  approvedApplications: 0,
+  totalApplications: 0,
   reviews: 0,
   weeklyVisits: 0,
   dailyVisitSeries: [0, 0, 0, 0, 0, 0, 0],
@@ -56,6 +51,20 @@ type ContactMessage = {
   subject: string
   message: string
   read: boolean
+  createdAt: unknown
+}
+
+type RentalApplication = {
+  id: string
+  userId: string
+  userEmail: string
+  applicantDisplayName: string
+  applicantPhone: string
+  currentCity: string
+  monthlyIncome: number
+  numberOfLocations?: number
+  motivation: string
+  status: "pending" | "approved" | "declined"
   createdAt: unknown
 }
 
@@ -99,21 +108,6 @@ const roleSelectOptions: Array<{ label: string; value: UserRole }> = [
   { label: "Guest", value: "guest" },
 ]
 
-const buildLastSevenDays = () => {
-  const formatter = new Intl.DateTimeFormat("en-GB", { weekday: "short" })
-  const now = new Date()
-
-  return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(now)
-    date.setDate(now.getDate() - (6 - index))
-
-    return {
-      key: date.toISOString().slice(0, 10),
-      label: formatter.format(date),
-    }
-  })
-}
-
 const AdminDashboard = () => {
   const { token } = useAuth()
   const [users, setUsers] = useState<AdminUserRecord[]>([])
@@ -125,8 +119,12 @@ const AdminDashboard = () => {
 
   const [contacts, setContacts] = useState<ContactMessage[]>([])
   const [contactsLoading, setContactsLoading] = useState(true)
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats>(defaultDashboardStats)
+  const [applications, setApplications] = useState<RentalApplication[]>([])
+  const [applicationsLoading, setApplicationsLoading] = useState(true)
+  const [applicationActionLoading, setApplicationActionLoading] = useState(false)
+  const [dashboardStats, setDashboardStats] = useState<AdminDashboardStats>(defaultDashboardStats)
   const [statsLoading, setStatsLoading] = useState(true)
+  const latestApplication = applications[0] ?? null
 
   const loadDashboardStats = useCallback(async () => {
     if (!token) {
@@ -138,34 +136,8 @@ const AdminDashboard = () => {
     setStatsLoading(true)
 
     try {
-      const [landlordsSnap, approvedAppsSnap, reviewsSnap, dailyVisitsSnap] = await Promise.all([
-        getCountFromServer(query(collection(db, "users"), where("role", "==", "landlord"))),
-        getCountFromServer(query(collection(db, "applications"), where("status", "==", "approved"))),
-        getCountFromServer(collection(db, "reviews")),
-        getDocs(query(collection(db, "analytics_page_views_daily"), orderBy("date", "desc"), limit(7))),
-      ])
-
-      const lastSevenDays = buildLastSevenDays()
-      const dailyViewsByDate = new Map<string, number>()
-
-      dailyVisitsSnap.docs.forEach((visitDoc) => {
-        const data = visitDoc.data() as { date?: string; views?: number }
-        if (!data.date) {
-          return
-        }
-        dailyViewsByDate.set(data.date, typeof data.views === "number" ? data.views : 0)
-      })
-
-      const dailyVisitSeries = lastSevenDays.map((day) => dailyViewsByDate.get(day.key) ?? 0)
-
-      setDashboardStats({
-        landlords: landlordsSnap.data().count,
-        approvedApplications: approvedAppsSnap.data().count,
-        reviews: reviewsSnap.data().count,
-        weeklyVisits: dailyVisitSeries.reduce((sum, views) => sum + views, 0),
-        dailyVisitSeries,
-        dailyVisitLabels: lastSevenDays.map((day) => day.label),
-      })
+      const stats = await fetchAdminDashboardStats(token)
+      setDashboardStats(stats)
     } catch {
       setDashboardStats(defaultDashboardStats)
     } finally {
@@ -186,7 +158,21 @@ const AdminDashboard = () => {
     }
   }, [])
 
+  const loadApplications = useCallback(async () => {
+    setApplicationsLoading(true)
+    try {
+      const q = query(collection(db, "applications"), orderBy("createdAt", "desc"))
+      const snap = await getDocs(q)
+      setApplications(snap.docs.map((d) => ({ id: d.id, ...d.data() } as RentalApplication)))
+    } catch {
+      setApplications([])
+    } finally {
+      setApplicationsLoading(false)
+    }
+  }, [])
+
   useEffect(() => { void loadContacts() }, [loadContacts])
+  useEffect(() => { void loadApplications() }, [loadApplications])
 
   const handleToggleContactRead = async (id: string, currentRead: boolean) => {
     await updateDoc(doc(db, "contacts", id), { read: !currentRead })
@@ -299,6 +285,68 @@ const AdminDashboard = () => {
     }
   }
 
+  const handleApplicationDecision = async (applicationId: string, nextStatus: "approved" | "declined") => {
+    if (applicationActionLoading) return
+    setApplicationActionLoading(true)
+    try {
+      let lastError: unknown = null
+      let updated = false
+      const nextRole: UserRole = nextStatus === "approved" ? "landlord" : "tenant"
+
+      try {
+        if (token) {
+          const result = await updateAdminApplicationStatus(token, applicationId, nextStatus)
+          const updatedRole = result.updatedUserRole
+          if (updatedRole !== null) {
+            setUsers((prev) => prev.map((user) => (
+              user.uid === latestApplication?.userId
+                ? { ...user, role: updatedRole }
+                : user
+            )))
+          }
+          updated = true
+        }
+      } catch (error) {
+        lastError = error
+      }
+
+      if (!updated) {
+        await updateDoc(doc(db, "applications", applicationId), { status: nextStatus })
+
+        const applicationSnapshot = await getDoc(doc(db, "applications", applicationId))
+        const applicationData = applicationSnapshot.data() as { userId?: string } | undefined
+        if (applicationData?.userId) {
+          await updateDoc(doc(db, "users", applicationData.userId), { role: nextRole })
+          setUsers((prev) => prev.map((user) => (
+            user.uid === applicationData.userId
+              ? { ...user, role: nextRole }
+              : user
+          )))
+        }
+
+        updated = true
+      }
+
+      if (!updated) {
+        throw lastError ?? new Error("Unknown application update error")
+      }
+
+      setApplications((prev) => prev.map((item) => (
+        item.id === applicationId
+          ? { ...item, status: nextStatus }
+          : item
+      )))
+
+      await loadDashboardStats()
+      setUsersError(null)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update application status"
+      setUsersError(`Failed to update application status: ${message}`)
+    } finally {
+      setApplicationActionLoading(false)
+    }
+  }
+
   return (
     <>
       <Helmet>
@@ -345,9 +393,9 @@ const AdminDashboard = () => {
             value={statsLoading ? "..." : String(dashboardStats.landlords)}
           />
           <AdminStatCard
-            helper="Approved rental applications"
+            helper="Total submitted applications"
             label="Applications"
-            value={statsLoading ? "..." : String(dashboardStats.approvedApplications)}
+            value={statsLoading ? "..." : String(dashboardStats.totalApplications)}
           />
           <AdminStatCard
             helper="Reviews submitted by users"
@@ -510,6 +558,75 @@ const AdminDashboard = () => {
               ))}
             </div>
           )}
+        </section>
+
+        <section className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-[#1f1f1f]">Application Decision</h2>
+              <p className="text-sm text-gray-500">All info provided by the applicant is shown below.</p>
+            </div>
+            <Link
+              className="inline-flex items-center justify-center rounded-full bg-[#047857] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#036c50]"
+              to="/apply"
+            >
+              Apply Now
+            </Link>
+          </div>
+
+          {applicationsLoading ? (
+            <p className="mt-4 text-sm text-gray-500">Loading applications...</p>
+          ) : latestApplication ? (
+            <div className="mt-5 rounded-2xl border border-black/10 bg-[#f9faf9] p-4">
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold text-[#1f1f1f]">Name:</span> {latestApplication.applicantDisplayName}
+              </p>
+              <p className="mt-1 text-sm text-gray-700">
+                <span className="font-semibold text-[#1f1f1f]">Email:</span> {latestApplication.userEmail || "Not provided"}
+              </p>
+              <p className="mt-1 text-sm text-gray-700">
+                <span className="font-semibold text-[#1f1f1f]">Phone:</span> {latestApplication.applicantPhone || "Not provided"}
+              </p>
+              <p className="mt-1 text-sm text-gray-700">
+                <span className="font-semibold text-[#1f1f1f]">Current city:</span> {latestApplication.currentCity}
+              </p>
+              <p className="mt-1 text-sm text-gray-700">
+                <span className="font-semibold text-[#1f1f1f]">Monthly income:</span> EUR {latestApplication.monthlyIncome}
+              </p>
+              <p className="mt-1 text-sm text-gray-700">
+                <span className="font-semibold text-[#1f1f1f]">Number of locations:</span> {latestApplication.numberOfLocations ?? "Not provided"}
+              </p>
+              <p className="mt-1 text-sm text-gray-700">
+                <span className="font-semibold text-[#1f1f1f]">Motivation:</span> {latestApplication.motivation}
+              </p>
+              <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-[#047857]">
+                Status: {latestApplication.status}
+              </p>
+            </div>
+          ) : (
+            <div className="mt-5 rounded-2xl border border-dashed border-black/10 py-8 text-center">
+              <p className="text-sm text-gray-500">No applicant information available yet.</p>
+            </div>
+          )}
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              className="rounded-full bg-[#047857] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#036c50]"
+              disabled={!latestApplication || applicationActionLoading}
+              onClick={() => latestApplication && handleApplicationDecision(latestApplication.id, "approved")}
+              type="button"
+            >
+              Accept Application
+            </button>
+            <button
+              className="rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+              disabled={!latestApplication || applicationActionLoading}
+              onClick={() => latestApplication && handleApplicationDecision(latestApplication.id, "declined")}
+              type="button"
+            >
+              Decline Application
+            </button>
+          </div>
         </section>
 
         <section className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">

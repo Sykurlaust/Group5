@@ -11,6 +11,7 @@ import {
   updateDoc,
 } from "firebase/firestore"
 import { db } from "./firebase"
+import { callAuthenticatedEndpoint } from "./apiClient"
 
 interface FirestoreTimestampLike {
   seconds: number
@@ -32,6 +33,25 @@ export interface AdminUserRecord {
 export interface AdminUserListResponse {
   users: AdminUserRecord[]
   nextCursor: string | null
+}
+
+export interface AdminDashboardStats {
+  landlords: number
+  totalApplications: number
+  reviews: number
+  weeklyVisits: number
+  dailyVisitSeries: number[]
+  dailyVisitLabels: string[]
+}
+
+export interface AdminApplicationRecord {
+  id: string
+  status: "pending" | "approved" | "declined"
+}
+
+export interface AdminApplicationDecisionResponse {
+  application: AdminApplicationRecord
+  updatedUserRole: UserRole | null
 }
 
 export interface CreateAdminUserPayload {
@@ -74,6 +94,51 @@ export const createAdminUser = async (
   throw new Error(
     "Creating users requires the backend. Use the Firebase console or deploy the backend server.",
   )
+}
+
+export const fetchAdminDashboardStats = async (token: string): Promise<AdminDashboardStats> => {
+  const response = await callAuthenticatedEndpoint(token, "/admin/stats")
+
+  if (!response.ok) {
+    let message = "Failed to load dashboard statistics"
+    try {
+      const body = (await response.json()) as { error?: string }
+      if (body.error) {
+        message = body.error
+      }
+    } catch {
+      // Ignore JSON parse failures and keep default message.
+    }
+    throw new Error(message)
+  }
+
+  return (await response.json()) as AdminDashboardStats
+}
+
+export const updateAdminApplicationStatus = async (
+  token: string,
+  applicationId: string,
+  status: "pending" | "approved" | "declined",
+): Promise<AdminApplicationDecisionResponse> => {
+  const response = await callAuthenticatedEndpoint(token, `/admin/applications/${applicationId}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  })
+
+  if (!response.ok) {
+    let message = "Failed to update application status"
+    try {
+      const body = (await response.json()) as { error?: string }
+      if (body.error) {
+        message = body.error
+      }
+    } catch {
+      // Keep fallback message
+    }
+    throw new Error(message)
+  }
+
+  return (await response.json()) as AdminApplicationDecisionResponse
 }
 
 export const updateAdminUserRole = async (

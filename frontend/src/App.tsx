@@ -9,7 +9,6 @@ import { useAuth } from "./context/AuthContext"
 
 const AppLayout = lazy(() => import("./admin/layout/AppLayout"))
 const AdminDashboard = lazy(() => import("./admin/pages/AdminDashboard"))
-const LandlordDashboard = lazy(() => import("./admin/pages/LandlordDashboard"))
 const Account = lazy(() => import("./pages/Account"))
 const AboutUs = lazy(() => import("./pages/AboutUs"))
 const Apply = lazy(() => import("./pages/Apply"))
@@ -21,7 +20,6 @@ const Login = lazy(() => import("./pages/loginpage"))
 const MessagesPage = lazy(() => import("./pages/MessagesPage"))
 const Favorites = lazy(() => import("./pages/Favorites"))
 const Privacy = lazy(() => import("./pages/Privacy"))
-const Settings = lazy(() => import("./pages/Settings"))
 const Signup = lazy(() => import("./pages/signuppage"))
 const Reviews = lazy(() => import("./pages/Reviews"))
 const Terms = lazy(() => import("./pages/Terms"))
@@ -85,14 +83,7 @@ function App() {
               </RequireAuth>
             }
           />
-          <Route
-            path="/settings"
-            element={
-              <RequireAuth>
-                <Settings />
-              </RequireAuth>
-            }
-          />
+          {/* Settings page removed — not used */}
 
           <Route
             path="/dashboard"
@@ -111,14 +102,7 @@ function App() {
                 </RequireRole>
               }
             />
-            <Route
-              path="landlord"
-              element={
-                <RequireRole allowedRoles={["landlord", "admin"]} redirectTo="/dashboard">
-                  <LandlordDashboard />
-                </RequireRole>
-              }
-            />
+            <Route path="landlord" element={<Navigate replace to="/favorites" />} />
             <Route path="renter" element={<Navigate replace to="/favorites" />} />
             <Route path="favorited" element={<Navigate replace to="/favorites" />} />
           </Route>
@@ -148,7 +132,7 @@ const DashboardLanding = () => {
   }
 
   if (role === "landlord") {
-    return <Navigate replace to="/dashboard/landlord" />
+    return <Navigate replace to="/favorites" />
   }
 
   if (role === "tenant") {
