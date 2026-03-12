@@ -1,25 +1,7 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 const JOTFORM_AGENT_SCRIPT_SRC =
   "https://cdn.jotfor.ms/agent/embedjs/019cdc18dbdc751292ad7c9cf298bf4b2fd1/embed.js"
-
-type IdleCallbackHandle = number
-type IdleCallbackFn = (deadline: { didTimeout: boolean; timeRemaining: () => number }) => void
-type IdleCallbackOptions = { timeout?: number }
-
-const getRequestIdleCallback = () => {
-  const maybeWindow = window as Window & {
-    requestIdleCallback?: (callback: IdleCallbackFn, options?: IdleCallbackOptions) => IdleCallbackHandle
-  }
-  return maybeWindow.requestIdleCallback
-}
-
-const getCancelIdleCallback = () => {
-  const maybeWindow = window as Window & {
-    cancelIdleCallback?: (handle: IdleCallbackHandle) => void
-  }
-  return maybeWindow.cancelIdleCallback
-}
 
 const removeJotformAgentNodes = () => {
   const selectors = [
@@ -37,73 +19,62 @@ const removeJotformAgentNodes = () => {
 
 const HomepageSupportChatbot = () => {
   const hasLoadedRef = useRef(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  const handleLoadChatbot = () => {
+    if (typeof document === "undefined" || hasLoadedRef.current || isLoading) return
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      `script[src="${JOTFORM_AGENT_SCRIPT_SRC}"]`,
+    )
+    if (existingScript) {
+      hasLoadedRef.current = true
+      setIsLoaded(true)
+      return
+    }
+
+    setIsLoading(true)
+    const script = document.createElement("script")
+    script.src = JOTFORM_AGENT_SCRIPT_SRC
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+      hasLoadedRef.current = true
+      setIsLoaded(true)
+      setIsLoading(false)
+    }
+    script.onerror = () => {
+      setIsLoading(false)
+    }
+    document.body.appendChild(script)
+  }
 
   useEffect(() => {
     if (typeof document === "undefined") return
-
-    let fallbackTimerId: number | null = null
-    let idleHandle: IdleCallbackHandle | null = null
-
-    const loadScript = () => {
-      if (hasLoadedRef.current) return
-
-      const existingScript = document.querySelector<HTMLScriptElement>(
-        `script[src="${JOTFORM_AGENT_SCRIPT_SRC}"]`,
-      )
-      if (existingScript) {
-        hasLoadedRef.current = true
-        return
-      }
-
-      const script = document.createElement("script")
-      script.src = JOTFORM_AGENT_SCRIPT_SRC
-      script.async = true
-      script.defer = true
-      document.body.appendChild(script)
-      hasLoadedRef.current = true
-    }
-
-    const triggerLoadAndCleanupInteractionListeners = () => {
-      loadScript()
-      window.removeEventListener("pointerdown", triggerLoadAndCleanupInteractionListeners)
-      window.removeEventListener("keydown", triggerLoadAndCleanupInteractionListeners)
-      window.removeEventListener("scroll", triggerLoadAndCleanupInteractionListeners)
-    }
-
-    window.addEventListener("pointerdown", triggerLoadAndCleanupInteractionListeners, { once: true })
-    window.addEventListener("keydown", triggerLoadAndCleanupInteractionListeners, { once: true })
-    window.addEventListener("scroll", triggerLoadAndCleanupInteractionListeners, {
-      once: true,
-      passive: true,
-    })
-
-    const requestIdle = getRequestIdleCallback()
-    if (requestIdle) {
-      idleHandle = requestIdle(() => loadScript(), { timeout: 5000 })
-    } else {
-      fallbackTimerId = window.setTimeout(loadScript, 3000)
-    }
-
     return () => {
-      if (fallbackTimerId !== null) {
-        window.clearTimeout(fallbackTimerId)
-      }
-
-      if (idleHandle !== null) {
-        const cancelIdle = getCancelIdleCallback()
-        cancelIdle?.(idleHandle)
-      }
-
-      window.removeEventListener("pointerdown", triggerLoadAndCleanupInteractionListeners)
-      window.removeEventListener("keydown", triggerLoadAndCleanupInteractionListeners)
-      window.removeEventListener("scroll", triggerLoadAndCleanupInteractionListeners)
-
       hasLoadedRef.current = false
       removeJotformAgentNodes()
     }
   }, [])
 
-  return null
+  if (isLoaded) return null
+
+  return (
+    <button
+      aria-label="Open support chat"
+      className="fixed bottom-6 right-6 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-transparent shadow-none transition-transform duration-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#047857]/30 disabled:cursor-not-allowed"
+      disabled={isLoading}
+      onClick={handleLoadChatbot}
+      type="button"
+    >
+      <img
+        alt="Support"
+        className={`h-12 w-12 object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.2)] ${isLoading ? "animate-pulse opacity-70" : ""}`}
+        src="/assets/support-agent.png"
+      />
+    </button>
+  )
 }
 
 export default HomepageSupportChatbot
