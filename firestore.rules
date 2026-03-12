@@ -1,6 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
     match /listings/{doc} {
       allow read: if true;
       allow write: if false;
@@ -42,7 +47,9 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
       );
-      allow update, delete: if false;
+      allow update: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      allow delete: if false;
     }
 
     match /contacts/{contactId} {
@@ -93,6 +100,11 @@ service cloud.firestore {
         && request.resource.data.senderId == request.auth.uid;
 
       allow update, delete: if false;
+    }
+
+    // Global override: admins can access all Firestore documents.
+    match /{document=**} {
+      allow read, write: if isAdmin();
     }
   }
 }
