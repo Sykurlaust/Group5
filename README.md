@@ -1,239 +1,192 @@
-# Group5 – Web Application Project
+# GC Renting — Group5 (Complete project README)
 
-## 1. Project Overview
+This repository contains the GC Renting application: a web platform to list and find long-term rental properties in Gran Canaria. The project is split into a frontend (Vite + React + TypeScript) and a backend (Express + TypeScript) that integrates with Firebase (Authentication, Firestore, Storage).
 
-Group5 is a collaborative web development project created as part of a team-based software engineering workflow. The objective of the project is to design, implement, and maintain a modern web application while applying professional development practices such as version control, collaborative development, modular architecture, and integration with external services.
+Table of contents
 
-The repository contains the full source code of the application, including frontend components, configuration files, and integrations with external platforms such as Firebase. The system is structured to allow scalable development, clear separation of responsibilities, and maintainability over time.
+- Project overview
+- Repository layout (detailed)
+- Requirements
+- Local development (frontend + backend)
+- Environment variables and example files
+- Firebase setup and seeds
+- Scripts and common commands
+- Important files and directories (expanded)
+- CI / Deployment notes
+- Contributing
+- Troubleshooting
+- Security notes
+- Suggested next steps
+- License
 
-The application provides a platform where users can interact with the system through a web interface, manage personal data, and interact with different services integrated into the platform.
+Project overview
 
-This project emphasizes the following principles:
+GC Renting is a marketplace-like app for long-term rentals. Main features:
 
-- Collaborative development using Git and GitHub
-- Modular code structure
-- Integration with external backend services
-- User authentication and profile management
-- Scalable project organization for team environments
+- Public listing browsing and filtering
+- Listing details, images and landlord contact
+- Contact form that sends leads to Firestore
+- Authentication and role-based admin pages
+- Admin capabilities to manage listings, reviews and renter applications
 
-The repository is maintained through the `develop` branch as the main integration branch where features are merged before being prepared for stable releases.
+Repository layout (detailed)
 
----
+Top-level folders
 
-## 2. Project Objectives
+- `frontend/` — Vite React application (TypeScript + Tailwind)
+- `backend/` — Node/Express API (TypeScript) using Firebase Admin SDK
+- `docs/` — documentation notes and setup guides
+- `public/` — top-level public assets used by the repo (favicons, global assets)
+- `scripts/` — maintenance utilities (e.g., import scripts)
 
-The primary goals of the project are:
+Frontend structure (selected)
 
-- To build a functional web application using modern web technologies.
-- To implement authentication and user management systems.
-- To integrate cloud services for storage and backend functionality.
-- To establish a clear workflow for collaborative development.
-- To maintain a well-organized and documented codebase.
+- `frontend/package.json` — frontend scripts & deps
+- `frontend/index.html` — HTML entry, fonts and favicon links
+- `frontend/public/` — static assets served by Vite
+- `frontend/src/main.tsx` — React entry point
+- `frontend/src/App.tsx` — app root and router
+- `frontend/src/components/` — shared components (Header, Footer, Logo, Card components)
+- `frontend/src/pages/` — page-level components (Home, Contact, AboutUs, Admin pages)
+- `frontend/src/lib/` — api client, firebase client, helpers
+- `frontend/src/styles/` — Tailwind overrides or global styles
 
-The project also serves as a practical environment for applying software development methodologies typically used in real-world development teams.
+Backend structure (selected)
 
----
+- `backend/package.json` — backend scripts & deps
+- `backend/src/index.ts` — Express server entry
+- `backend/src/config/firebase.ts` — firebase-admin init (reads service account)
+- `backend/src/controllers/` — route handlers
+- `backend/src/services/` — business logic interacting with Firestore
+- `backend/src/routes/` — express routes
+- `backend/src/seeds/seedAdmin.ts` — seed script to create initial admin
 
-## 3. Technology Stack
+Requirements
 
-The project uses a modern web development stack composed of frontend technologies and cloud-based backend services.
+- Node.js 18+ (Node 20 recommended)
+- npm 9+ (or yarn/pnpm)
+- A Firebase project (Firestore + Authentication enabled)
 
-### Frontend
+Local development instructions
 
-The client-side interface is built using standard web technologies:
+1) Clone repo
 
-- HTML5
-- CSS3
-- JavaScript
-- Modular component-based architecture
-
-These technologies are used to create a responsive and interactive user interface that communicates with backend services.
-
-### Backend Services
-
-Instead of a traditional custom backend server, the application integrates cloud-based services:
-
-- Firebase Authentication
-- Firebase Storage
-- Firebase project configuration
-
-These services allow the application to handle authentication, file storage, and data operations without requiring a dedicated server infrastructure.
-
-### Development Environment
-
-The development process relies on the following tools:
-
-- Git for version control
-- GitHub for collaboration and repository management
-- Node.js for dependency management and development tooling
-- npm for installing and managing project dependencies
-- Visual Studio Code as the recommended development environment
-
----
-
-## 4. Repository Structure
-
-The repository follows a modular structure that separates application logic, assets, and configuration files.
-
-```
-Group5
-│
-├── public/
-│   Static files that are served directly by the application.
-│   This may include images, icons, and other public assets.
-│
-├── src/
-│   Main source code of the application.
-│
-│   ├── components/
-│   Reusable interface components used across multiple pages.
-│
-│   ├── pages/
-│   Main views or screens of the application.
-│
-│   ├── services/
-│   Modules responsible for communication with external services
-│   such as Firebase authentication or storage APIs.
-│
-│   ├── utils/
-│   Utility functions and helper modules used across the project.
-│
-│   └── styles/
-│   CSS or styling files used for layout and visual design.
-│
-├── config/
-│   Configuration files related to the project environment.
-│
-├── package.json
-│   Defines the project dependencies, scripts, and metadata.
-│
-└── README.md
-    Documentation for the project.
-```
-
-This structure allows the project to scale while keeping the code organized and maintainable.
-
----
-
-## 5. Installation and Setup
-
-To run the project locally, follow these steps.
-
-### Clone the repository
-
-```
+```bash
 git clone https://github.com/Sykurlaust/Group5.git
-```
-
-### Navigate to the project directory
-
-```
 cd Group5
 ```
 
-### Install dependencies
+2) Start frontend (new terminal)
 
-```
+```bash
+cd frontend
 npm install
-```
-
-### Run the development environment
-
-```
 npm run dev
 ```
 
-After starting the development server, the application will be available in the browser through the local development URL provided by the toolchain.
+Vite dev server usually runs on http://localhost:5173.
 
----
+3) Start backend (another terminal)
 
-## 6. Environment Configuration
-
-The application relies on environment variables to configure external services such as Firebase.
-
-Create a `.env` file in the root directory of the project and include the required configuration variables.
-
-Example configuration:
-
+```bash
+cd backend
+npm install
+npm run dev
 ```
+
+Default backend port is 4000. Ensure `VITE_API_BASE_URL` (in frontend env) points at `http://localhost:4000/api` or your configured backend URL.
+
+Environment variables and example files
+
+You should not commit real secrets. Create `.env` files locally. Recommended variables:
+
+frontend/.env (example)
+
+```env
 VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_project_domain
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_STORAGE_BUCKET=your_bucket.appspot.com
+VITE_API_BASE_URL=http://localhost:4000/api
 ```
 
-These values must correspond to the Firebase project used by the application.
+backend/.env (example)
+
+```env
+FIREBASE_SERVICE_ACCOUNT_PATH=./group5-grancanaria-firebase-adminsdk-fbsvc-325f7fb903.json
+PORT=4000
+CORS_ORIGIN=http://localhost:5173
+```
+
+I can generate `frontend/.env.example` and `backend/.env.example` files if you want them added to the repo.
+
+Firebase setup & seeds
+
+1. Create a Firebase project in console.firebase.google.com.
+2. Enable Firestore and Authentication providers you need (Email/Password, Google, etc.).
+3. Generate a Service Account key and place the JSON file locally; configure `FIREBASE_SERVICE_ACCOUNT_PATH` in backend `.env`.
+4. Review `firestore.rules` and `storage.rules` present at repo root before deploying.
+5. Optionally run the seed script `backend/src/seeds/seedAdmin.ts` to create an initial admin account.
+
+Scripts and common commands
+
+- Frontend (run inside `frontend/`):
+    - `npm run dev` — start dev server
+    - `npm run build` — build for production
+    - `npm run preview` — preview production build
+- Backend (run inside `backend/`):
+    - `npm run dev` — run server in watch mode
+    - `npm run build` — build for production (if configured)
+
+Important files and references
+
+- `firebase.json` — firebase configuration for hosting/emulators
+- `firestore.rules` / `storage.rules` — security rules for Firestore and Storage
+- `frontend/public/gc-renting-logo.svg`, `gc-renting-favicon.svg` — brand assets
+- `frontend/src/components/Header.tsx`, `Footer.tsx` — top-level layout
+- `frontend/src/pages/Contact.tsx` — contact form handling
+- `backend/src/config/firebase.ts` — service account initialization
+- `backend/src/seeds/seedAdmin.ts` — read before running seeds
+
+CI / Deployment notes
+
+- There is a GitHub Actions workflow in `.github/workflows/` (check `deploy-pages.yml`) that may be used to deploy the frontend to GitHub Pages or other providers. Review the workflow and update secrets in GitHub repository settings.
+- For backend deployment consider Cloud Run, Heroku, or a VM. Ensure service account secrets are provided via the host platform's secret manager.
+
+Contributing
+
+Workflow recommendations:
+
+1. Branch from `develop`: `git checkout -b feature/your-feature`
+2. Small, focused commits with descriptive messages
+3. Open PRs to `develop` with description and test steps
+4. Use code review and link issues where applicable
+
+I can add a `CONTRIBUTING.md` and PR/issue templates if you want.
+
+Troubleshooting
+
+- Missing Firebase config in frontend: restart Vite after adding `.env` variables.
+- CORS errors: confirm `CORS_ORIGIN` matches frontend origin and backend is restarted.
+- Service account errors: verify `FIREBASE_SERVICE_ACCOUNT_PATH` and file permissions.
+
+Security notes
+
+- Never commit service account JSON or `.env` files to Git.
+- Use Firebase security rules.
+- Use secret managers for production deployments.
+
+Suggested next steps I can implement for you
+
+- Create `frontend/.env.example` and `backend/.env.example` files (safe placeholders)
+- Add `CONTRIBUTING.md`, `ISSUE_TEMPLATE.md`, `PULL_REQUEST_TEMPLATE.md` and a `LICENSE` (e.g., MIT)
+- Add README badges (build, license) and a short `DEPLOY.md` describing deploy targets
+
+License
+
+Add a `LICENSE` file to the repo (for example MIT or Apache-2.0). If you want, I can add an MIT license file now.
 
 ---
 
-## 7. Development Workflow
+If you'd like, I will now create the `frontend/.env.example`, `backend/.env.example`, `CONTRIBUTING.md`, and `LICENSE` (MIT) files and commit them to the repo. Reply which of those I should generate.
 
-The repository follows a collaborative Git workflow to manage code contributions.
-
-Typical workflow:
-
-1. Create a new feature branch from `develop`
-2. Implement the feature or fix
-3. Commit changes with descriptive commit messages
-4. Push the branch to the remote repository
-5. Create a Pull Request
-6. Review and merge changes into the `develop` branch
-
-This workflow ensures that new features are integrated in a controlled manner and allows multiple developers to collaborate simultaneously.
-
----
-
-## 8. Key Functional Areas
-
-The application focuses on several core functional areas:
-
-### User Authentication
-
-The system allows users to register and log in through Firebase Authentication. This ensures secure management of user accounts and session handling.
-
-### Profile Management
-
-Users can manage their profile information and upload profile images using Firebase Storage integration.
-
-### Media Storage
-
-The application supports uploading and retrieving user-generated content stored in the cloud.
-
-### User Interface
-
-The frontend interface is designed to be responsive and modular, allowing components to be reused throughout the application.
-
----
-
-## 9. Future Improvements
-
-Several improvements are planned for future iterations of the project:
-
-- Implementation of automated testing
-- Improved UI/UX design
-- Performance optimization
-- Expanded user functionality
-- Deployment pipeline configuration
-- Continuous integration setup
-
----
-
-## 10. Contribution Guidelines
-
-Contributions to the project should follow standard GitHub collaboration practices.
-
-When contributing:
-
-- Ensure code is clean and well structured
-- Follow the established project architecture
-- Document any new features or configuration requirements
-- Submit changes through Pull Requests
-
----
-
-## 11. License
-
-This project is developed for educational and collaborative purposes.  
-All contributors retain authorship of their respective contributions.
