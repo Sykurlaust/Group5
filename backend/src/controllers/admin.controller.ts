@@ -7,10 +7,13 @@ import {
   updateUserVerified,
   deleteUser,
   createUserWithRole,
+  getDashboardStats,
+  updateApplicationStatus,
 } from "../services/admin.service.js"
 import type { UserRole } from "../models/user.model.js"
 
 const VALID_ROLES: UserRole[] = ["guest", "tenant", "landlord", "admin"]
+const VALID_APPLICATION_STATUSES = ["pending", "approved", "declined"] as const
 
 const normalizeRole = (role: unknown): UserRole | null => {
   if (typeof role !== "string") {
@@ -73,6 +76,16 @@ export const getUsers = async (req: AuthenticatedRequest, res: Response): Promis
   } catch (error) {
     console.error("getUsers error:", error)
     res.status(500).json({ error: "Failed to list users" })
+  }
+}
+
+export const getStats = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const stats = await getDashboardStats()
+    res.json(stats)
+  } catch (error) {
+    console.error("getStats error:", error)
+    res.status(500).json({ error: "Failed to load dashboard statistics" })
   }
 }
 
@@ -156,6 +169,33 @@ export const removeUser = async (req: AuthenticatedRequest, res: Response): Prom
   } catch (error) {
     console.error("removeUser error:", error)
     res.status(500).json({ error: "Failed to delete user" })
+  }
+}
+
+export const patchApplicationStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const applicationId = String(req.params.applicationId)
+    const status = typeof req.body?.status === "string" ? req.body.status.trim().toLowerCase() : ""
+
+    if (!VALID_APPLICATION_STATUSES.includes(status as (typeof VALID_APPLICATION_STATUSES)[number])) {
+      res.status(400).json({ error: "status must be one of: pending, approved, declined" })
+      return
+    }
+
+    const updated = await updateApplicationStatus(
+      applicationId,
+      status as "pending" | "approved" | "declined",
+    )
+
+    if (!updated) {
+      res.status(404).json({ error: "Application not found" })
+      return
+    }
+
+    res.json(updated)
+  } catch (error) {
+    console.error("patchApplicationStatus error:", error)
+    res.status(500).json({ error: "Failed to update application status" })
   }
 }
 

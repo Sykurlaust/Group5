@@ -9,7 +9,6 @@ import { useAuth } from "./context/AuthContext"
 
 const AppLayout = lazy(() => import("./admin/layout/AppLayout"))
 const AdminDashboard = lazy(() => import("./admin/pages/AdminDashboard"))
-const LandlordDashboard = lazy(() => import("./admin/pages/LandlordDashboard"))
 const Account = lazy(() => import("./pages/Account"))
 const AboutUs = lazy(() => import("./pages/AboutUs"))
 const Apply = lazy(() => import("./pages/Apply"))
@@ -103,14 +102,7 @@ function App() {
                 </RequireRole>
               }
             />
-            <Route
-              path="landlord"
-              element={
-                <RequireRole allowedRoles={["landlord", "admin"]} redirectTo="/dashboard">
-                  <LandlordDashboard />
-                </RequireRole>
-              }
-            />
+            <Route path="landlord" element={<Navigate replace to="/favorites" />} />
             <Route path="renter" element={<Navigate replace to="/favorites" />} />
             <Route path="favorited" element={<Navigate replace to="/favorites" />} />
           </Route>
@@ -140,7 +132,7 @@ const DashboardLanding = () => {
   }
 
   if (role === "landlord") {
-    return <Navigate replace to="/dashboard/landlord" />
+    return <Navigate replace to="/favorites" />
   }
 
   if (role === "tenant") {
