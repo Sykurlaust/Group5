@@ -71,6 +71,12 @@ const Header = () => {
       return
     }
 
+    const isHomeRoute = location.pathname === "/" || location.pathname === "/home"
+    if (isHomeRoute) {
+      setUnreadMessageCount(0)
+      return
+    }
+
     let isCancelled = false
     const timeoutId = window.setTimeout(() => {
       void fetchUnreadConversationCount(firebaseUser.uid)

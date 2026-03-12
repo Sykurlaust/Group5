@@ -44,6 +44,8 @@ const initDb = () => {
   try {
     return initializeFirestore(app, {
       localCache: persistentLocalCache(),
+      // Helps avoid WebChannel stream timeout issues (Listen/channel) on some networks.
+      experimentalAutoDetectLongPolling: true,
     })
   } catch {
     return getFirestore(app)
