@@ -1,5 +1,4 @@
 type LogoProps = {
-  variant?: "main" | "navbar" | "icon" | "white" | "black"
   width?: number | string
   className?: string
 }

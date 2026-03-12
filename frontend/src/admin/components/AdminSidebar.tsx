@@ -34,9 +34,13 @@ const AdminSidebar = () => {
       >
         <div className="absolute right-[3px] top-1/2 hidden h-16 w-2 -translate-y-1/2 rounded-full bg-[#047857] shadow-sm lg:block" />
         <div className="flex items-center justify-between pb-6">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#047857]">Account</p>
-            <p className="text-xl font-semibold text-[#1f1f1f]">GC-Renting</p>
+          <div className="flex items-center gap-2">
+            <img
+              alt="GC Renting"
+              className="h-9 w-auto object-contain"
+              src="/gc-renting-logo.svg"
+            />
+            <p className="text-xl font-semibold tracking-tight text-[#1f1f1f]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>GC Renting</p>
           </div>
           <button
             className="rounded-full border border-black/10 px-3 py-1 text-sm font-semibold text-gray-600 lg:hidden"
