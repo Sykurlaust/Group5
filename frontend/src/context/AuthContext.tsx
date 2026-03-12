@@ -3,35 +3,45 @@ import type { ReactNode } from "react"
 import type { User } from "firebase/auth"
 import { onIdTokenChanged, signOut } from "firebase/auth"
 import { auth } from "../services/firebase"
-import { doc, getDoc, setDoc } from "firebase/firestore"
-import { db } from "../lib/firebase"
 
-export type UserRole = "admin" | "landlord" | "tenant" | "guest"
+export type UserRole = "guest" | "tenant" | "landlord" | "admin"
+const FORCED_ADMIN_EMAIL = "admin@gcrenting.com"
 
-const normalizeUserRole = (role: unknown): UserRole => {
-  if (typeof role !== "string") {
-    return "guest"
+const normalizeEmail = (email: string): string => email.trim().toLowerCase()
+
+export const resolveUserRole = (email: string, role: unknown): UserRole => {
+  if (normalizeEmail(email) === FORCED_ADMIN_EMAIL) {
+    return "admin"
   }
 
-  const normalized = role.toLowerCase()
-  if (normalized === "renter") {
-    return "tenant"
+  if (role === "admin" || role === "landlord" || role === "tenant" || role === "guest") {
+    return role
   }
 
-  return normalized === "admin" || normalized === "landlord" || normalized === "tenant"
-    ? normalized
-    : "guest"
+  return "guest"
 }
 
-const mapUserProfile = (payload: any): UserProfile => ({
-  uid: payload.uid,
-  email: payload.email,
+const getApiBaseUrl = (): string => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
+  if (!baseUrl) {
+    throw new Error("VITE_API_BASE_URL is not defined. Please set it in your .env file.")
+  }
+  return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl
+}
+
+const mapUserProfile = (payload: any, fallbackEmail = ""): UserProfile => {
+  const resolvedEmail = typeof payload?.email === "string" ? payload.email : fallbackEmail
+
+  return {
+    uid: payload.uid,
+    email: resolvedEmail,
   displayName: payload.displayName,
   photoURL: payload.photoURL ?? null,
   phone: payload.phone ?? null,
-  role: normalizeUserRole(payload.role),
+    role: resolveUserRole(resolvedEmail, payload.role),
   verified: Boolean(payload.verified),
-})
+  }
+}
 
 const buildDisplayName = (user: User): string => {
   if (user.displayName && user.displayName.trim().length > 0) {
@@ -43,22 +53,46 @@ const buildDisplayName = (user: User): string => {
   return "Guest"
 }
 
-const ensureProfile = async (user: User): Promise<UserProfile> => {
-  const ref = doc(db, "users", user.uid)
-  const snap = await getDoc(ref)
-  if (snap.exists()) {
-    return mapUserProfile({ uid: user.uid, ...snap.data() })
+const callAuthEndpoint = async (token: string, path: string, init: RequestInit = {}) => {
+  const baseUrl = getApiBaseUrl()
+  const headers = new Headers((init.headers ?? undefined) as HeadersInit)
+  headers.set("Authorization", `Bearer ${token}`)
+
+  const shouldSetJsonHeader = init.body && !(init.body instanceof FormData)
+  if (shouldSetJsonHeader && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json")
   }
-  const newData = {
-    email: user.email ?? "",
-    displayName: buildDisplayName(user),
-    photoURL: user.photoURL ?? null,
-    phone: null,
-    role: "tenant",
-    verified: user.emailVerified,
+
+  return fetch(`${baseUrl}${path}`, { ...init, headers })
+}
+
+const fetchProfile = async (token: string): Promise<UserProfile> => {
+  const response = await callAuthEndpoint(token, "/auth/me")
+  if (!response.ok) {
+    throw new Error("Unable to fetch profile")
   }
-  await setDoc(ref, newData)
-  return mapUserProfile({ uid: user.uid, ...newData })
+
+  const data = await response.json()
+  return mapUserProfile(data.user)
+}
+
+const ensureProfile = async (user: User, token: string): Promise<UserProfile> => {
+  const response = await callAuthEndpoint(token, "/auth/me")
+
+  if (response.status === 404) {
+    await callAuthEndpoint(token, "/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ displayName: buildDisplayName(user) }),
+    })
+    return fetchProfile(token)
+  }
+
+  if (!response.ok) {
+    throw new Error("Unable to synchronize user profile")
+  }
+
+  const data = await response.json()
+  return mapUserProfile(data.user, user.email ?? "")
 }
 
 export interface UserProfile {
@@ -91,8 +125,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null)
 
   const syncProfile = useCallback(
-    async (user: User) => {
-      const resolvedProfile = await ensureProfile(user)
+    async (user: User, nextToken: string) => {
+      const resolvedProfile = await ensureProfile(user, nextToken)
       setProfile(resolvedProfile)
     },
     [],
@@ -114,7 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const freshToken = await user.getIdToken()
         setToken(freshToken)
-        await syncProfile(user)
+        await syncProfile(user, freshToken)
       } catch (err) {
         console.error("Failed to sync auth state", err)
         setError(err instanceof Error ? err.message : "Failed to sync authentication state")
@@ -133,7 +167,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const freshToken = await firebaseUser.getIdToken(true)
       setToken(freshToken)
-      await syncProfile(firebaseUser)
+      await syncProfile(firebaseUser, freshToken)
       setError(null)
     } catch (err) {
       console.error("Failed to refresh profile", err)

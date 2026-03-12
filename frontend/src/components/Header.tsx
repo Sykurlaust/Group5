@@ -3,7 +3,7 @@ import type { FormEvent } from "react"
 import { ChevronDown, LogOut, Settings as SettingsIcon, UserCircle2 } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import Logo from "./Logo.jsx"
-import { useAuth } from "../context/AuthContext"
+import { resolveUserRole, useAuth } from "../context/AuthContext"
 import { subscribeUnreadConversationCount } from "../lib/chat"
 
 const navLinks = [
@@ -34,8 +34,9 @@ const Header = () => {
         const initials = parts.map((part) => part[0]?.toUpperCase()).filter(Boolean)
         return (initials[0] ?? "G") + (initials[1] ?? initials[0] ?? "C")
     }, [accountDisplayName])
-    const roleLabel = profile?.role ?? "guest"
-    const isAdmin = profile?.role === "admin"
+    const resolvedRole = resolveUserRole(profile?.email ?? firebaseUser?.email ?? "", profile?.role)
+    const roleLabel = resolvedRole
+    const isAdmin = resolvedRole === "admin"
 
     useEffect(() => {
         setSearchValue(currentSearchParam)
