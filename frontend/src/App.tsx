@@ -21,7 +21,6 @@ const Login = lazy(() => import("./pages/loginpage"))
 const MessagesPage = lazy(() => import("./pages/MessagesPage"))
 const Favorites = lazy(() => import("./pages/Favorites"))
 const Privacy = lazy(() => import("./pages/Privacy"))
-const Settings = lazy(() => import("./pages/Settings"))
 const Signup = lazy(() => import("./pages/signuppage"))
 const Reviews = lazy(() => import("./pages/Reviews"))
 const Terms = lazy(() => import("./pages/Terms"))
@@ -85,14 +84,7 @@ function App() {
               </RequireAuth>
             }
           />
-          <Route
-            path="/settings"
-            element={
-              <RequireAuth>
-                <Settings />
-              </RequireAuth>
-            }
-          />
+          {/* Settings page removed — not used */}
 
           <Route
             path="/dashboard"

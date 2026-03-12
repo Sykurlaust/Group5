@@ -8,7 +8,7 @@ import {
     LogOut,
     MessageCircle,
     Search,
-    Settings as SettingsIcon,
+    
     UserCircle2,
 } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
@@ -280,14 +280,7 @@ const Header = () => {
                                     <UserCircle2 className="h-5 w-5 text-gray-500" />
                                     <span>My Profile</span>
                                 </Link>
-                                <Link
-                                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
-                                    to="/settings"
-                                    onClick={() => setIsProfileMenuOpen(false)}
-                                >
-                                    <SettingsIcon className="h-5 w-5 text-gray-500" />
-                                    <span>Settings</span>
-                                </Link>
+                                {/* Settings removed — unused page */}
                                 <div className="my-1 h-px bg-black/5" />
                                 <button
                                     className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
@@ -391,14 +384,7 @@ const Header = () => {
                         <UserCircle2 className="h-5 w-5 text-white/70" />
                         <span>Account</span>
                     </Link>
-                    <Link
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
-                        to="/settings"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                        <SettingsIcon className="h-5 w-5 text-white/70" />
-                        <span>Settings</span>
-                    </Link>
+                    {/* Settings link removed — unused page */}
                     <button
                         className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:bg-white/10"
                         onClick={handleLogout}

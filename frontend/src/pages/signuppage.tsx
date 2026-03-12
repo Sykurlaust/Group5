@@ -110,8 +110,9 @@ const Signup = () => {
 
             <form className="mt-8 space-y-5" onSubmit={handleEmailSignup}>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-500">Full name</label>
+                <label htmlFor="signup-name" className="text-sm font-semibold text-gray-500">Full name</label>
                 <input
+                  id="signup-name"
                   className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#047857]"
                   placeholder="Your full name"
                   value={name}
@@ -123,8 +124,9 @@ const Signup = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-500">Email</label>
+                <label htmlFor="signup-email" className="text-sm font-semibold text-gray-500">Email</label>
                 <input
+                  id="signup-email"
                   className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#047857]"
                   placeholder="you@email.com"
                   value={email}
@@ -136,8 +138,9 @@ const Signup = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-500">Password</label>
+                <label htmlFor="signup-password" className="text-sm font-semibold text-gray-500">Password</label>
                 <input
+                  id="signup-password"
                   className="w-full rounded-[18px] border border-black/10 px-4 py-3 text-sm outline-none focus:border-[#047857]"
                   placeholder="Create a password"
                   value={password}
