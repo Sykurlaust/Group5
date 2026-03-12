@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom"
-import { useAuth, type UserRole } from "../../context/AuthContext"
+import { resolveUserRole, useAuth, type UserRole } from "../../context/AuthContext"
 import { useAdminSidebar } from "../context/AdminSidebarContext"
 import { cn } from "./cn"
 
@@ -19,8 +19,8 @@ const sidebarBase =
 
 const AdminSidebar = () => {
   const { closeSidebar, isSidebarOpen } = useAdminSidebar()
-  const { profile } = useAuth()
-  const role: UserRole = profile?.role ?? "guest"
+  const { profile, firebaseUser } = useAuth()
+  const role: UserRole = resolveUserRole(profile?.email ?? firebaseUser?.email ?? "", profile?.role)
   const availableNavItems = navItems.filter((item) => !item.roles || item.roles.includes(role))
 
   return (

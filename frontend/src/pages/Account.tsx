@@ -3,7 +3,7 @@ import type { ChangeEvent, FormEvent } from "react"
 import { Helmet } from "react-helmet-async"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
-import { useAuth } from "../context/AuthContext"
+import { resolveUserRole, useAuth } from "../context/AuthContext"
 import { getApiBaseUrl } from "../lib/apiClient"
 
 type AccountFormState = {
@@ -68,7 +68,7 @@ const Account = () => {
   }, [formState, initialFormState, selectedPhotoFile])
 
   const accountKind = useMemo(() => {
-    const role = (profile?.role ?? "guest").toLowerCase()
+    const role = resolveUserRole(profile?.email ?? firebaseUser?.email ?? "", profile?.role)
     switch (role) {
       case "admin":
         return { label: "Admin", helper: "Full access — manages the entire platform" }

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import type { FormEvent } from "react"
-import { collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc } from "firebase/firestore"
+import { collection, deleteDoc, doc, getCountFromServer, getDocs, limit, orderBy, query, updateDoc, where } from "firebase/firestore"
 import { db } from "../../lib/firebase"
 import { Helmet } from "react-helmet-async"
 import AdminHighlights from "../components/AdminHighlights"
@@ -11,19 +10,29 @@ import { useAuth } from "../../context/AuthContext"
 import type { UserRole } from "../../context/AuthContext"
 import {
   type AdminUserRecord,
-  createAdminUser,
   deleteAdminUser,
   listAdminUsers,
   updateAdminUserRole,
   updateAdminUserVerification,
 } from "../../lib/adminUsers"
 
-const statCards = [
-  { helper: "Active landlord accounts", label: "Landlords", value: "42" },
-  { helper: "Verified rental applications", label: "Applications", value: "118" },
-  { helper: "Listings pending moderation", label: "Reviews", value: "9" },
-  { helper: "Avg. response time this week", label: "Support", value: "1h 12m" },
-]
+type DashboardStats = {
+  landlords: number
+  approvedApplications: number
+  reviews: number
+  weeklyVisits: number
+  dailyVisitSeries: number[]
+  dailyVisitLabels: string[]
+}
+
+const defaultDashboardStats: DashboardStats = {
+  landlords: 0,
+  approvedApplications: 0,
+  reviews: 0,
+  weeklyVisits: 0,
+  dailyVisitSeries: [0, 0, 0, 0, 0, 0, 0],
+  dailyVisitLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+}
 
 const recentActivity = [
   { label: "New landlord onboarding", meta: "Sonia Torres • 2m ago" },
@@ -37,8 +46,6 @@ const reviewQueue = [
   { title: "Loft Chamberí", owner: "Patricia Gil", priority: "Medium" },
   { title: "Sevilla Centro Duplex", owner: "Alana Ruiz", priority: "Low" },
 ]
-
-type ManagedRole = "admin" | "landlord" | "tenant"
 
 type ContactMessage = {
   id: string
@@ -92,14 +99,19 @@ const roleSelectOptions: Array<{ label: string; value: UserRole }> = [
   { label: "Guest", value: "guest" },
 ]
 
-const assignableRoles: ManagedRole[] = ["admin", "landlord", "tenant"]
+const buildLastSevenDays = () => {
+  const formatter = new Intl.DateTimeFormat("en-GB", { weekday: "short" })
+  const now = new Date()
 
-const defaultFormState: { name: string; email: string; password: string; phone: string; role: ManagedRole } = {
-  name: "",
-  email: "",
-  password: "",
-  phone: "",
-  role: "tenant",
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(now)
+    date.setDate(now.getDate() - (6 - index))
+
+    return {
+      key: date.toISOString().slice(0, 10),
+      label: formatter.format(date),
+    }
+  })
 }
 
 const AdminDashboard = () => {
@@ -110,12 +122,56 @@ const AdminDashboard = () => {
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [busyUsers, setBusyUsers] = useState<Record<string, boolean>>({})
-  const [formState, setFormState] = useState(defaultFormState)
-  const [formError, setFormError] = useState<string | null>(null)
-  const [formSubmitting, setFormSubmitting] = useState(false)
 
   const [contacts, setContacts] = useState<ContactMessage[]>([])
   const [contactsLoading, setContactsLoading] = useState(true)
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>(defaultDashboardStats)
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  const loadDashboardStats = useCallback(async () => {
+    if (!token) {
+      setDashboardStats(defaultDashboardStats)
+      setStatsLoading(false)
+      return
+    }
+
+    setStatsLoading(true)
+
+    try {
+      const [landlordsSnap, approvedAppsSnap, reviewsSnap, dailyVisitsSnap] = await Promise.all([
+        getCountFromServer(query(collection(db, "users"), where("role", "==", "landlord"))),
+        getCountFromServer(query(collection(db, "applications"), where("status", "==", "approved"))),
+        getCountFromServer(collection(db, "reviews")),
+        getDocs(query(collection(db, "analytics_page_views_daily"), orderBy("date", "desc"), limit(7))),
+      ])
+
+      const lastSevenDays = buildLastSevenDays()
+      const dailyViewsByDate = new Map<string, number>()
+
+      dailyVisitsSnap.docs.forEach((visitDoc) => {
+        const data = visitDoc.data() as { date?: string; views?: number }
+        if (!data.date) {
+          return
+        }
+        dailyViewsByDate.set(data.date, typeof data.views === "number" ? data.views : 0)
+      })
+
+      const dailyVisitSeries = lastSevenDays.map((day) => dailyViewsByDate.get(day.key) ?? 0)
+
+      setDashboardStats({
+        landlords: landlordsSnap.data().count,
+        approvedApplications: approvedAppsSnap.data().count,
+        reviews: reviewsSnap.data().count,
+        weeklyVisits: dailyVisitSeries.reduce((sum, views) => sum + views, 0),
+        dailyVisitSeries,
+        dailyVisitLabels: lastSevenDays.map((day) => day.label),
+      })
+    } catch {
+      setDashboardStats(defaultDashboardStats)
+    } finally {
+      setStatsLoading(false)
+    }
+  }, [token])
 
   const loadContacts = useCallback(async () => {
     setContactsLoading(true)
@@ -175,7 +231,7 @@ const AdminDashboard = () => {
         setUsers((prev) => (append ? [...prev, ...data.users] : data.users))
         setNextCursor(data.nextCursor)
       } catch (error) {
-        setUsersError(error instanceof Error ? error.message : "No se pudo cargar la lista de usuarios")
+        setUsersError(error instanceof Error ? error.message : "Failed to load user list")
       } finally {
         if (append) {
           setIsLoadingMore(false)
@@ -197,52 +253,9 @@ const AdminDashboard = () => {
     loadUsers()
   }, [token, loadUsers])
 
-  const handleFormChange = (field: keyof typeof formState, value: string) => {
-    setFormError(null)
-    setFormState((prev) => ({
-      ...prev,
-      [field]: field === "role" ? (value as ManagedRole) : value,
-    }))
-  }
-
-  const handleAddUser = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (!token) {
-      setFormError("No se encontró un token activo. Vuelve a iniciar sesión.")
-      return
-    }
-
-    const name = formState.name.trim()
-    const email = formState.email.trim().toLowerCase()
-    const password = formState.password.trim()
-
-    if (!name || !email) {
-      setFormError("Nombre y correo son obligatorios")
-      return
-    }
-
-    if (password.length < 6) {
-      setFormError("La contraseña debe tener al menos 6 caracteres")
-      return
-    }
-
-    setFormSubmitting(true)
-    try {
-      await createAdminUser(token, {
-        displayName: name,
-        email,
-        password,
-        role: formState.role,
-        phone: formState.phone.trim() || undefined,
-      })
-      setFormState(defaultFormState)
-      await loadUsers()
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : "No se pudo crear el usuario")
-    } finally {
-      setFormSubmitting(false)
-    }
-  }
+  useEffect(() => {
+    void loadDashboardStats()
+  }, [loadDashboardStats])
 
   const handleRoleChange = async (uid: string, nextRole: UserRole) => {
     if (!token) return
@@ -251,7 +264,7 @@ const AdminDashboard = () => {
       const updated = await updateAdminUserRole(token, uid, nextRole)
       setUsers((prev) => prev.map((user) => (user.uid === uid ? updated : user)))
     } catch (error) {
-      setUsersError(error instanceof Error ? error.message : "No se pudo actualizar el rol")
+      setUsersError(error instanceof Error ? error.message : "Failed to update role")
     } finally {
       setUserBusy(uid, false)
     }
@@ -264,7 +277,7 @@ const AdminDashboard = () => {
       const updated = await updateAdminUserVerification(token, uid, nextVerified)
       setUsers((prev) => prev.map((user) => (user.uid === uid ? updated : user)))
     } catch (error) {
-      setUsersError(error instanceof Error ? error.message : "No se pudo actualizar la verificación")
+      setUsersError(error instanceof Error ? error.message : "Failed to update verification")
     } finally {
       setUserBusy(uid, false)
     }
@@ -272,7 +285,7 @@ const AdminDashboard = () => {
 
   const handleDeleteUser = async (uid: string) => {
     if (!token) return
-    const confirmation = window.confirm("¿Eliminar este usuario de forma permanente?")
+    const confirmation = window.confirm("Delete this user permanently?")
     if (!confirmation) return
 
     setUserBusy(uid, true)
@@ -280,7 +293,7 @@ const AdminDashboard = () => {
       await deleteAdminUser(token, uid)
       setUsers((prev) => prev.filter((user) => user.uid !== uid))
     } catch (error) {
-      setUsersError(error instanceof Error ? error.message : "No se pudo eliminar el usuario")
+      setUsersError(error instanceof Error ? error.message : "Failed to delete user")
     } finally {
       setUserBusy(uid, false)
     }
@@ -326,13 +339,34 @@ const AdminDashboard = () => {
         </section>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {statCards.map((stat) => (
-            <AdminStatCard helper={stat.helper} key={stat.label} label={stat.label} value={stat.value} />
-          ))}
+          <AdminStatCard
+            helper="Active landlord accounts"
+            label="Landlords"
+            value={statsLoading ? "..." : String(dashboardStats.landlords)}
+          />
+          <AdminStatCard
+            helper="Approved rental applications"
+            label="Applications"
+            value={statsLoading ? "..." : String(dashboardStats.approvedApplications)}
+          />
+          <AdminStatCard
+            helper="Reviews submitted by users"
+            label="Reviews"
+            value={statsLoading ? "..." : String(dashboardStats.reviews)}
+          />
+          <AdminStatCard
+            helper="Total site visits in the last 7 days"
+            label="Visits (7d)"
+            value={statsLoading ? "..." : String(dashboardStats.weeklyVisits)}
+          />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <AdminTrafficChart title="Platform Visits" />
+          <AdminTrafficChart
+            title="Platform Visits"
+            categories={dashboardStats.dailyVisitLabels}
+            visits={dashboardStats.dailyVisitSeries}
+          />
           <AdminHighlights />
         </div>
 
@@ -482,107 +516,26 @@ const AdminDashboard = () => {
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-[#1f1f1f]">User & Role Management</h2>
-              <p className="text-sm text-gray-500">Add administrators, landlords, or tenants and adjust their permissions.</p>
+              <p className="text-sm text-gray-500">Review users and adjust their permissions.</p>
             </div>
             <span className="rounded-full bg-[#ecfdf5] px-4 py-1 text-xs font-semibold uppercase tracking-wide text-[#047857]">
-              {users.length} usuarios activos
+              {users.length} active users
             </span>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
-            <form className="space-y-4 rounded-2xl border border-black/5 bg-[#f9fafb] p-4" onSubmit={handleAddUser}>
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500" htmlFor="user-name">
-                  Nombre completo
-                </label>
-                <input
-                  className="mt-1 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#1f1f1f] focus:border-[#047857] focus:outline-none"
-                  id="user-name"
-                  placeholder="Ej. Andrea Martín"
-                  value={formState.name}
-                  onChange={(event) => handleFormChange("name", event.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500" htmlFor="user-email">
-                  Correo
-                </label>
-                <input
-                  className="mt-1 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#1f1f1f] focus:border-[#047857] focus:outline-none"
-                  id="user-email"
-                  placeholder="correo@empresa.com"
-                  type="email"
-                  value={formState.email}
-                  onChange={(event) => handleFormChange("email", event.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500" htmlFor="user-password">
-                  Contraseña temporal
-                </label>
-                <input
-                  className="mt-1 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#1f1f1f] focus:border-[#047857] focus:outline-none"
-                  id="user-password"
-                  placeholder="Mínimo 6 caracteres"
-                  type="password"
-                  value={formState.password}
-                  onChange={(event) => handleFormChange("password", event.target.value)}
-                />
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500" htmlFor="user-role">
-                    Rol
-                  </label>
-                  <select
-                    className="mt-1 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#1f1f1f] focus:border-[#047857] focus:outline-none"
-                    id="user-role"
-                    value={formState.role}
-                    onChange={(event) => handleFormChange("role", event.target.value)}
-                  >
-                    {assignableRoles.map((role) => (
-                      <option key={role} value={role}>
-                        {role.charAt(0).toUpperCase() + role.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500" htmlFor="user-phone">
-                    Teléfono (opcional)
-                  </label>
-                  <input
-                    className="mt-1 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#1f1f1f] focus:border-[#047857] focus:outline-none"
-                    id="user-phone"
-                    placeholder="+34 600 123 456"
-                    value={formState.phone}
-                    onChange={(event) => handleFormChange("phone", event.target.value)}
-                  />
-                </div>
-              </div>
-              {formError && <p className="text-xs font-semibold text-red-500">{formError}</p>}
-              <button
-                className="w-full rounded-full bg-[#047857] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#036c50] disabled:cursor-not-allowed disabled:opacity-70"
-                type="submit"
-                disabled={formSubmitting}
-              >
-                {formSubmitting ? "Creando usuario..." : "Añadir usuario"}
-              </button>
-              <p className="text-xs text-gray-500">Los usuarios se crean directamente en Firebase Auth y Firestore.</p>
-            </form>
-
+          <div className="mt-6">
             <div className="rounded-2xl border border-black/5">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/5 px-4 py-3">
                 <p className="text-sm font-semibold text-[#1f1f1f]">Equipo GC</p>
                 <div className="flex items-center gap-3 text-xs text-gray-500">
-                  <span>{users.length} usuarios</span>
+                  <span>{users.length} users</span>
                   <button
                     type="button"
                     className="rounded-full border border-black/10 px-3 py-1 font-semibold text-[#047857] hover:border-[#047857]"
                     onClick={() => loadUsers()}
                     disabled={usersLoading}
                   >
-                    Actualizar
+                    Refresh
                   </button>
                 </div>
               </div>
@@ -607,13 +560,13 @@ const AdminDashboard = () => {
                     {usersLoading ? (
                       <tr>
                         <td className="px-4 py-4 text-sm text-gray-500" colSpan={4}>
-                          Cargando usuarios reales...
+                          Loading real users...
                         </td>
                       </tr>
                     ) : users.length === 0 ? (
                       <tr>
                         <td className="px-4 py-4 text-sm text-gray-500" colSpan={4}>
-                          No hay usuarios registrados aún.
+                          No registered users yet.
                         </td>
                       </tr>
                     ) : (
@@ -644,7 +597,7 @@ const AdminDashboard = () => {
                                 user.verified ? "bg-[#ecfdf5] text-[#047857]" : "bg-[#fef3c7] text-[#b45309]"
                               }`}
                             >
-                              {user.verified ? "Verificado" : "Pendiente"}
+                              {user.verified ? "Verified" : "Pending"}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right">
@@ -655,7 +608,7 @@ const AdminDashboard = () => {
                                 disabled={Boolean(busyUsers[user.uid])}
                                 onClick={() => handleVerificationToggle(user.uid, !user.verified)}
                               >
-                                {user.verified ? "Marcar pendiente" : "Marcar verificado"}
+                                {user.verified ? "Mark pending" : "Mark verified"}
                               </button>
                               <button
                                 className="text-xs font-semibold text-red-500 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
@@ -663,7 +616,7 @@ const AdminDashboard = () => {
                                 disabled={Boolean(busyUsers[user.uid])}
                                 onClick={() => handleDeleteUser(user.uid)}
                               >
-                                Eliminar
+                                Delete
                               </button>
                             </div>
                           </td>
@@ -682,7 +635,7 @@ const AdminDashboard = () => {
                     onClick={() => loadUsers({ cursor: nextCursor, append: true })}
                     disabled={isLoadingMore}
                   >
-                    {isLoadingMore ? "Cargando..." : "Cargar más"}
+                    {isLoadingMore ? "Loading..." : "Load more"}
                   </button>
                 </div>
               )}

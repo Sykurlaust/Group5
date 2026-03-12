@@ -4,6 +4,9 @@ import AdminStatCard from "../components/AdminStatCard"
 import AdminTrafficChart from "../components/AdminTrafficChart"
 
 const LandlordDashboard = () => {
+  const trafficCategories = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  const trafficVisits = [0, 0, 0, 0, 0, 0, 0]
+
   return (
     <>
       <Helmet>
@@ -18,7 +21,11 @@ const LandlordDashboard = () => {
         </div>
 
         <div className="grid w-full gap-6">
-          <AdminTrafficChart title="Landlord Listing Traffic" />
+          <AdminTrafficChart
+            title="Landlord Listing Traffic"
+            categories={trafficCategories}
+            visits={trafficVisits}
+          />
           <AdminHighlights />
         </div>
       </div>
