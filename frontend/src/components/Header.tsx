@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { FormEvent } from "react"
-import { ChevronDown, LayoutDashboard, LogOut, Settings as SettingsIcon, UserCircle2 } from "lucide-react"
+import {
+    ChevronDown,
+    FileText,
+    Heart,
+    LayoutDashboard,
+    LogOut,
+    MessageCircle,
+    Search,
+    Settings as SettingsIcon,
+    UserCircle2,
+} from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { fetchUnreadConversationCount } from "../lib/chat"
@@ -22,6 +32,7 @@ const Header = () => {
     const [searchValue, setSearchValue] = useState(currentSearchParam)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
     const [unreadMessageCount, setUnreadMessageCount] = useState(0)
     const profileMenuRef = useRef<HTMLDivElement | null>(null)
     const { firebaseUser, profile, logout, loading: authLoading } = useAuth()
@@ -43,6 +54,7 @@ const Header = () => {
     useEffect(() => {
         setIsMobileMenuOpen(false)
         setIsProfileMenuOpen(false)
+        setIsMobileSearchOpen(false)
     }, [location.pathname, location.search])
 
     useEffect(() => {
@@ -186,30 +198,6 @@ const Header = () => {
 
         return (
             <div className="flex items-center gap-3">
-                <Link
-                    className="inline-flex h-11 w-[110px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
-                    to="/favorites"
-                >
-                    Favorited
-                </Link>
-                <Link
-                    className="relative inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
-                    to="/messages"
-                >
-                    Messages
-                    {unreadMessageCount > 0 && (
-                        <span className="absolute right-2 top-2 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#ef4444] px-1 text-[10px] font-semibold text-white">
-                            {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
-                        </span>
-                    )}
-                </Link>
-                <Link
-                    className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
-                    to="/apply"
-                >
-                    Apply
-                </Link>
-
                 <div className="relative" ref={profileMenuRef}>
                     <button
                         aria-expanded={isProfileMenuOpen}
@@ -240,38 +228,75 @@ const Header = () => {
                                 <p className="mt-0.5 text-xs uppercase tracking-wide text-gray-400">{roleLabel}</p>
                             </div>
 
-                            {isAdmin && (
+                            <div className="space-y-1">
+                                {isAdmin && (
+                                    <Link
+                                        className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                        to="/dashboard/admin"
+                                        onClick={() => setIsProfileMenuOpen(false)}
+                                    >
+                                        <LayoutDashboard className="h-5 w-5 text-gray-500" />
+                                        <span>Dashboard</span>
+                                    </Link>
+                                )}
                                 <Link
                                     className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
-                                    to="/dashboard/admin"
+                                    to="/favorites"
+                                    onClick={() => setIsProfileMenuOpen(false)}
                                 >
-                                    <LayoutDashboard className="h-5 w-5 text-gray-500" />
-                                    <span>Dashboard</span>
+                                    <Heart className="h-5 w-5 text-gray-500" />
+                                    <span>Favorites</span>
                                 </Link>
-                            )}
-                            <Link
-                                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
-                                to="/account"
-                            >
-                                <UserCircle2 className="h-5 w-5 text-gray-500" />
-                                <span>My Profile</span>
-                            </Link>
-                            <Link
-                                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
-                                to="/settings"
-                            >
-                                <SettingsIcon className="h-5 w-5 text-gray-500" />
-                                <span>Settings</span>
-                            </Link>
-                            <div className="my-1 h-px bg-black/5" />
-                            <button
-                                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
-                                onClick={handleLogout}
-                                type="button"
-                            >
-                                <LogOut className="h-5 w-5" />
-                                <span>Log out</span>
-                            </button>
+                                <Link
+                                    className="flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                    to="/messages"
+                                    onClick={() => setIsProfileMenuOpen(false)}
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <MessageCircle className="h-5 w-5 text-gray-500" />
+                                        <span>Messages</span>
+                                    </span>
+                                    {unreadMessageCount > 0 && (
+                                        <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#ef4444] px-1 text-xs font-semibold text-white">
+                                            {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                                        </span>
+                                    )}
+                                </Link>
+                                <Link
+                                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                    to="/apply"
+                                    onClick={() => setIsProfileMenuOpen(false)}
+                                >
+                                    <FileText className="h-5 w-5 text-gray-500" />
+                                    <span>Apply Now</span>
+                                </Link>
+                                <div className="my-1 h-px bg-black/5" />
+                                <Link
+                                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                    to="/account"
+                                    onClick={() => setIsProfileMenuOpen(false)}
+                                >
+                                    <UserCircle2 className="h-5 w-5 text-gray-500" />
+                                    <span>My Profile</span>
+                                </Link>
+                                <Link
+                                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                    to="/settings"
+                                    onClick={() => setIsProfileMenuOpen(false)}
+                                >
+                                    <SettingsIcon className="h-5 w-5 text-gray-500" />
+                                    <span>Settings</span>
+                                </Link>
+                                <div className="my-1 h-px bg-black/5" />
+                                <button
+                                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+                                    onClick={handleLogout}
+                                    type="button"
+                                >
+                                    <LogOut className="h-5 w-5" />
+                                    <span>Log out</span>
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -316,64 +341,72 @@ const Header = () => {
                         <p className="text-xs uppercase tracking-wide text-white/70">{roleLabel}</p>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+
+                <nav className="divide-y divide-white/10 overflow-hidden rounded-2xl border border-white/20 bg-white/5">
                     {isAdmin && (
                         <Link
-                            className="col-span-2 inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-4 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef]"
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
                             to="/dashboard/admin"
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
-                            Dashboard
+                            <LayoutDashboard className="h-5 w-5 text-white/70" />
+                            <span>Dashboard</span>
                         </Link>
                     )}
                     <Link
-                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
-                        to="/account"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                        Account
-                    </Link>
-                    <Link
-                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
-                        to="/settings"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                        Settings
-                    </Link>
-                    <Link
-                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-4 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef]"
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
                         to="/favorites"
                         onClick={() => setIsMobileMenuOpen(false)}
                     >
-                        Favorited
+                        <Heart className="h-5 w-5 text-white/70" />
+                        <span>Favorites</span>
                     </Link>
                     <Link
-                        className="relative inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
                         to="/messages"
                         onClick={() => setIsMobileMenuOpen(false)}
                     >
-                        Messages
+                        <MessageCircle className="h-5 w-5 text-white/70" />
+                        <span>Messages</span>
                         {unreadMessageCount > 0 && (
-                            <span className="absolute right-2 top-2 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#ef4444] px-1 text-[10px] font-semibold text-white">
+                            <span className="ml-auto inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#ef4444] px-1 text-xs font-semibold text-white">
                                 {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
                             </span>
                         )}
                     </Link>
                     <Link
-                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
                         to="/apply"
                         onClick={() => setIsMobileMenuOpen(false)}
                     >
-                        Apply
+                        <FileText className="h-5 w-5 text-white/70" />
+                        <span>Apply Now</span>
+                    </Link>
+                    <Link
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
+                        to="/account"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        <UserCircle2 className="h-5 w-5 text-white/70" />
+                        <span>Account</span>
+                    </Link>
+                    <Link
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
+                        to="/settings"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        <SettingsIcon className="h-5 w-5 text-white/70" />
+                        <span>Settings</span>
                     </Link>
                     <button
-                        type="button"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:bg-white/10"
                         onClick={handleLogout}
-                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
+                        type="button"
                     >
-                        Log out
+                        <LogOut className="h-5 w-5 text-white/70" />
+                        <span>Log out</span>
                     </button>
-                </div>
+                </nav>
             </div>
         )
     }
@@ -410,31 +443,52 @@ const Header = () => {
                             {renderDesktopAuthActions()}
                         </div>
 
-                        <button
-                            aria-controls="mobile-header-menu"
-                            aria-expanded={isMobileMenuOpen}
-                            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white transition hover:bg-white/20 lg:hidden"
-                            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-                            type="button"
-                        >
-                            <svg
-                                aria-hidden="true"
-                                className="h-5 w-5"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                viewBox="0 0 24 24"
+                        <div className="flex items-center gap-2 lg:hidden">
+                            <button
+                                aria-controls="mobile-search-panel"
+                                aria-expanded={isMobileSearchOpen}
+                                aria-label={isMobileSearchOpen ? "Close search" : "Open search"}
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white transition hover:bg-white/20"
+                                onClick={() => setIsMobileSearchOpen((prev) => !prev)}
+                                type="button"
                             >
-                                {isMobileMenuOpen ? (
-                                    <path d="M6 6l12 12M18 6L6 18" />
-                                ) : (
-                                    <path d="M4 7h16M4 12h16M4 17h16" />
-                                )}
-                            </svg>
-                        </button>
+                                <Search className="h-5 w-5" aria-hidden="true" />
+                            </button>
+                            <button
+                                aria-controls="mobile-header-menu"
+                                aria-expanded={isMobileMenuOpen}
+                                aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white transition hover:bg-white/20"
+                                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                                type="button"
+                            >
+                                <svg
+                                    aria-hidden="true"
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    viewBox="0 0 24 24"
+                                >
+                                    {isMobileMenuOpen ? (
+                                        <path d="M6 6l12 12M18 6L6 18" />
+                                    ) : (
+                                        <path d="M4 7h16M4 12h16M4 17h16" />
+                                    )}
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-out lg:hidden ${
+                            isMobileSearchOpen ? "max-h-[120px] pb-3 opacity-100" : "max-h-0 opacity-0"
+                        }`}
+                        id="mobile-search-panel"
+                    >
+                        {renderSearchForm("mobile-site-search", "mt-2")}
                     </div>
 
                     <div
@@ -444,16 +498,15 @@ const Header = () => {
                         id="mobile-header-menu"
                     >
                         <div className="space-y-3 rounded-2xl border border-white/20 bg-white/5 p-3">
-                            {renderSearchForm("mobile-site-search")}
-
-                            <nav className="grid grid-cols-2 gap-2 text-sm font-semibold sm:grid-cols-4">
+                            <nav className="space-y-1 text-sm font-semibold">
                                 {navLinks.map((link) => (
                                     <Link
                                         key={link.to}
-                                        className="rounded-xl border border-white/20 px-3 py-2 text-center text-white/90 transition-colors hover:bg-white/15 hover:text-white"
+                                        className="flex items-center justify-between rounded-xl border border-white/20 px-4 py-3 text-white/90 transition-colors hover:bg-white/15 hover:text-white"
                                         to={link.to}
                                     >
-                                        {link.label}
+                                        <span>{link.label}</span>
+                                        <span aria-hidden="true">&gt;</span>
                                     </Link>
                                 ))}
                             </nav>
