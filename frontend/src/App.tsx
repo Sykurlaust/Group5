@@ -4,7 +4,6 @@ import ScrollToTop from "./components/ScrollToTop"
 import RequireAuth from "./components/RequireAuth"
 import RequireRole from "./components/RequireRole"
 import Home from "./pages/Home"
-import Rent from "./pages/Rent"
 import { useAuth } from "./context/AuthContext"
 
 const AppLayout = lazy(() => import("./admin/layout/AppLayout"))
@@ -24,6 +23,7 @@ const Privacy = lazy(() => import("./pages/Privacy"))
 const Settings = lazy(() => import("./pages/Settings"))
 const Signup = lazy(() => import("./pages/signuppage"))
 const Reviews = lazy(() => import("./pages/Reviews"))
+const Rent = lazy(() => import("./pages/Rent"))
 const Terms = lazy(() => import("./pages/Terms"))
 
 function App() {

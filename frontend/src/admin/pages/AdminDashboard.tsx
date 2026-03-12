@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useState } from "react"
+import { lazy, Suspense, useCallback, useEffect, useState } from "react"
 import type { FormEvent } from "react"
 import { collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc } from "firebase/firestore"
 import { db } from "../../lib/firebase"
 import { Helmet } from "react-helmet-async"
 import AdminHighlights from "../components/AdminHighlights"
 import AdminStatCard from "../components/AdminStatCard"
-import AdminTrafficChart from "../components/AdminTrafficChart"
 import DateRangeInput from "../components/DateRangeInput"
 import { useAuth } from "../../context/AuthContext"
 import type { UserRole } from "../../context/AuthContext"
@@ -93,6 +92,7 @@ const roleSelectOptions: Array<{ label: string; value: UserRole }> = [
 ]
 
 const assignableRoles: ManagedRole[] = ["admin", "landlord", "tenant"]
+const AdminTrafficChart = lazy(() => import("../components/AdminTrafficChart"))
 
 const defaultFormState: { name: string; email: string; password: string; phone: string; role: ManagedRole } = {
   name: "",
@@ -332,7 +332,15 @@ const AdminDashboard = () => {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <AdminTrafficChart title="Platform Visits" />
+          <Suspense
+            fallback={
+              <div className="rounded-[30px] border border-black/5 bg-white p-8 text-sm text-gray-500 shadow-sm">
+                Loading chart...
+              </div>
+            }
+          >
+            <AdminTrafficChart title="Platform Visits" />
+          </Suspense>
           <AdminHighlights />
         </div>
 
