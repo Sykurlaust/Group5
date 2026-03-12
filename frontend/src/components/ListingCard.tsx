@@ -78,6 +78,8 @@ const ListingCard = ({ listing, onCardClick }: ListingCardProps) => {
     try {
       const nextState = await toggleFavoriteListing(firebaseUser.uid, String(listing.id))
       setIsFavorited(nextState)
+    } catch (error) {
+      console.error("[ListingCard] Failed to toggle favorite:", error)
     } finally {
       setIsToggling(false)
     }
