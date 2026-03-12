@@ -1,7 +1,19 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import type { FormEvent } from "react"
+import {
+    ChevronDown,
+    FileText,
+    Heart,
+    LayoutDashboard,
+    LogOut,
+    MessageCircle,
+    Search,
+    
+    UserCircle2,
+} from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import Logo from "./Logo.jsx"
+import { resolveUserRole, useAuth } from "../context/AuthContext"
+import { fetchUnreadConversationCount } from "../lib/chat"
 
 const navLinks = [
     { label: "Home", to: "/home" },
@@ -19,6 +31,22 @@ const Header = () => {
     )
     const [searchValue, setSearchValue] = useState(currentSearchParam)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
+    const [unreadMessageCount, setUnreadMessageCount] = useState(0)
+    const profileMenuRef = useRef<HTMLDivElement | null>(null)
+    const { firebaseUser, profile, logout, loading: authLoading } = useAuth()
+    const isAuthenticated = Boolean(firebaseUser)
+    const accountDisplayName = profile?.displayName ?? firebaseUser?.displayName ?? firebaseUser?.email ?? ""
+    const accountInitials = useMemo(() => {
+        if (!accountDisplayName) return "GC"
+        const parts = accountDisplayName.trim().split(/\s+/)
+        const initials = parts.map((part) => part[0]?.toUpperCase()).filter(Boolean)
+        return (initials[0] ?? "G") + (initials[1] ?? initials[0] ?? "C")
+    }, [accountDisplayName])
+    const resolvedRole = resolveUserRole(profile?.email ?? firebaseUser?.email ?? "", profile?.role)
+    const roleLabel = resolvedRole
+    const isAdmin = resolvedRole === "admin"
 
     useEffect(() => {
         setSearchValue(currentSearchParam)
@@ -26,7 +54,62 @@ const Header = () => {
 
     useEffect(() => {
         setIsMobileMenuOpen(false)
+        setIsProfileMenuOpen(false)
+        setIsMobileSearchOpen(false)
     }, [location.pathname, location.search])
+
+    useEffect(() => {
+        if (!isProfileMenuOpen) {
+            return
+        }
+
+        const handleDocumentClick = (event: MouseEvent) => {
+            if (!profileMenuRef.current) {
+                return
+            }
+            const targetNode = event.target as Node
+            if (!profileMenuRef.current.contains(targetNode)) {
+                setIsProfileMenuOpen(false)
+            }
+        }
+
+        document.addEventListener("mousedown", handleDocumentClick)
+        return () => document.removeEventListener("mousedown", handleDocumentClick)
+    }, [isProfileMenuOpen])
+
+  useEffect(() => {
+    if (!firebaseUser) {
+      setUnreadMessageCount(0)
+      return
+    }
+
+    const isHomeRoute = location.pathname === "/" || location.pathname === "/home"
+    if (isHomeRoute) {
+      setUnreadMessageCount(0)
+      return
+    }
+
+    let isCancelled = false
+    const timeoutId = window.setTimeout(() => {
+      void fetchUnreadConversationCount(firebaseUser.uid)
+        .then((count) => {
+          if (!isCancelled) {
+            setUnreadMessageCount(count)
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to fetch unread message count", error)
+          if (!isCancelled) {
+            setUnreadMessageCount(0)
+          }
+        })
+    }, 800)
+
+    return () => {
+      isCancelled = true
+      window.clearTimeout(timeoutId)
+    }
+  }, [firebaseUser?.uid, location.pathname])
 
     const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -80,6 +163,241 @@ const Header = () => {
         </form>
     )
 
+    const handleLogout = async () => {
+        try {
+            await logout()
+            setIsMobileMenuOpen(false)
+            navigate("/home")
+        } catch (error) {
+            console.error("Failed to log out", error)
+        }
+    }
+
+    const renderDesktopAuthActions = () => {
+        if (authLoading) {
+            return <span className="text-sm text-white/80">Checking session...</span>
+        }
+
+        if (!isAuthenticated) {
+            return (
+                <>
+                    <Link
+                        className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-3 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef] xl:h-12 xl:w-[112px]"
+                        to="/login"
+                    >
+                        Log in
+                    </Link>
+                    <Link
+                        className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857] xl:h-12 xl:w-[112px]"
+                        to="/signup"
+                    >
+                        Sign up
+                    </Link>
+                </>
+            )
+        }
+
+        return (
+            <div className="flex items-center gap-3">
+                <div className="relative" ref={profileMenuRef}>
+                    <button
+                        aria-expanded={isProfileMenuOpen}
+                        aria-haspopup="menu"
+                        className="group flex h-12 items-center gap-3 rounded-full border border-white/60 bg-white/10 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                        onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                        type="button"
+                    >
+                        {profile?.photoURL ? (
+                            <img
+                                alt={accountDisplayName || "Profile"}
+                                className="h-9 w-9 rounded-full object-cover"
+                                src={profile.photoURL}
+                            />
+                        ) : (
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-sm font-bold text-white">
+                                {accountInitials}
+                            </div>
+                        )}
+                        <span className="max-w-[140px] truncate text-sm font-semibold">{accountDisplayName || "Account"}</span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${isProfileMenuOpen ? "rotate-180" : ""}`} />
+                    </button>
+
+                    {isProfileMenuOpen && (
+                        <div className="absolute right-0 z-50 mt-3 w-72 rounded-[28px] border border-black/5 bg-white p-2 text-[#1f1f1f] shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
+                            <div className="rounded-2xl px-4 pb-3 pt-3">
+                                <p className="truncate text-sm font-semibold text-gray-900">{accountDisplayName || "Your account"}</p>
+                                <p className="mt-0.5 text-xs uppercase tracking-wide text-gray-400">{roleLabel}</p>
+                            </div>
+
+                            <div className="space-y-1">
+                                {isAdmin && (
+                                    <Link
+                                        className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                        to="/dashboard/admin"
+                                        onClick={() => setIsProfileMenuOpen(false)}
+                                    >
+                                        <LayoutDashboard className="h-5 w-5 text-gray-500" />
+                                        <span>Dashboard</span>
+                                    </Link>
+                                )}
+                                <Link
+                                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                    to="/favorites"
+                                    onClick={() => setIsProfileMenuOpen(false)}
+                                >
+                                    <Heart className="h-5 w-5 text-gray-500" />
+                                    <span>Favorites</span>
+                                </Link>
+                                <Link
+                                    className="flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                    to="/messages"
+                                    onClick={() => setIsProfileMenuOpen(false)}
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <MessageCircle className="h-5 w-5 text-gray-500" />
+                                        <span>Messages</span>
+                                    </span>
+                                    {unreadMessageCount > 0 && (
+                                        <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#ef4444] px-1 text-xs font-semibold text-white">
+                                            {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                                        </span>
+                                    )}
+                                </Link>
+                                <Link
+                                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                    to="/apply"
+                                    onClick={() => setIsProfileMenuOpen(false)}
+                                >
+                                    <FileText className="h-5 w-5 text-gray-500" />
+                                    <span>Apply Now</span>
+                                </Link>
+                                <div className="my-1 h-px bg-black/5" />
+                                <Link
+                                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#047857]/10 hover:text-[#047857]"
+                                    to="/account"
+                                    onClick={() => setIsProfileMenuOpen(false)}
+                                >
+                                    <UserCircle2 className="h-5 w-5 text-gray-500" />
+                                    <span>My Profile</span>
+                                </Link>
+                                {/* Settings removed — unused page */}
+                                <div className="my-1 h-px bg-black/5" />
+                                <button
+                                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+                                    onClick={handleLogout}
+                                    type="button"
+                                >
+                                    <LogOut className="h-5 w-5" />
+                                    <span>Log out</span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
+    const renderMobileAuthActions = () => {
+        if (authLoading) {
+            return <p className="text-center text-sm font-semibold text-white/80">Checking session...</p>
+        }
+
+        if (!isAuthenticated) {
+            return (
+                <div className="grid grid-cols-2 gap-2">
+                    <Link
+                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-4 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef]"
+                        to="/login"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        Log in
+                    </Link>
+                    <Link
+                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
+                        to="/signup"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        Sign up
+                    </Link>
+                </div>
+            )
+        }
+
+        return (
+            <div className="space-y-3">
+                <div className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-base font-semibold text-white">
+                        {accountInitials}
+                    </div>
+                    <div>
+                        <p className="text-base font-semibold text-white">{accountDisplayName || "Your account"}</p>
+                        <p className="text-xs uppercase tracking-wide text-white/70">{roleLabel}</p>
+                    </div>
+                </div>
+
+                <nav className="divide-y divide-white/10 overflow-hidden rounded-2xl border border-white/20 bg-white/5">
+                    {isAdmin && (
+                        <Link
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
+                            to="/dashboard/admin"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <LayoutDashboard className="h-5 w-5 text-white/70" />
+                            <span>Dashboard</span>
+                        </Link>
+                    )}
+                    <Link
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
+                        to="/favorites"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        <Heart className="h-5 w-5 text-white/70" />
+                        <span>Favorites</span>
+                    </Link>
+                    <Link
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
+                        to="/messages"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        <MessageCircle className="h-5 w-5 text-white/70" />
+                        <span>Messages</span>
+                        {unreadMessageCount > 0 && (
+                            <span className="ml-auto inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#ef4444] px-1 text-xs font-semibold text-white">
+                                {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                            </span>
+                        )}
+                    </Link>
+                    <Link
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
+                        to="/apply"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        <FileText className="h-5 w-5 text-white/70" />
+                        <span>Apply Now</span>
+                    </Link>
+                    <Link
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
+                        to="/account"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        <UserCircle2 className="h-5 w-5 text-white/70" />
+                        <span>Account</span>
+                    </Link>
+                    {/* Settings link removed — unused page */}
+                    <button
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                        onClick={handleLogout}
+                        type="button"
+                    >
+                        <LogOut className="h-5 w-5 text-white/70" />
+                        <span>Log out</span>
+                    </button>
+                </nav>
+            </div>
+        )
+    }
+
     return (
         <header>
             <h1 className="sr-only">GC-Renting</h1>
@@ -87,10 +405,11 @@ const Header = () => {
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between gap-4 py-3 lg:py-4">
                         <Link className="shrink-0" to="/home" aria-label="Go to homepage">
-                            <Logo
-                                className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
-                                variant="navbar"
-                                width="clamp(146px, 15vw, 218px)"
+                            <img
+                                alt="GC Renting"
+                                className="h-10 w-auto object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+                                src="/gc-renting-logo.svg"
+                                style={{ filter: "brightness(0) invert(1)" }}
                             />
                         </Link>
 
@@ -108,46 +427,55 @@ const Header = () => {
                             </nav>
 
                             {renderSearchForm("site-search", "max-w-[320px] xl:max-w-[350px]")}
-
-                            <Link
-                                className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-3 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef] xl:h-12 xl:w-[112px]"
-                                to="/login"
-                            >
-                                Log in
-                            </Link>
-                            <Link
-                                className="inline-flex h-11 w-[104px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857] xl:h-12 xl:w-[112px]"
-                                to="/signup"
-                            >
-                                Sign up
-                            </Link>
+                            {renderDesktopAuthActions()}
                         </div>
 
-                        <button
-                            aria-controls="mobile-header-menu"
-                            aria-expanded={isMobileMenuOpen}
-                            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white transition hover:bg-white/20 lg:hidden"
-                            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-                            type="button"
-                        >
-                            <svg
-                                aria-hidden="true"
-                                className="h-5 w-5"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                viewBox="0 0 24 24"
+                        <div className="flex items-center gap-2 lg:hidden">
+                            <button
+                                aria-controls="mobile-search-panel"
+                                aria-expanded={isMobileSearchOpen}
+                                aria-label={isMobileSearchOpen ? "Close search" : "Open search"}
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white transition hover:bg-white/20"
+                                onClick={() => setIsMobileSearchOpen((prev) => !prev)}
+                                type="button"
                             >
-                                {isMobileMenuOpen ? (
-                                    <path d="M6 6l12 12M18 6L6 18" />
-                                ) : (
-                                    <path d="M4 7h16M4 12h16M4 17h16" />
-                                )}
-                            </svg>
-                        </button>
+                                <Search className="h-5 w-5" aria-hidden="true" />
+                            </button>
+                            <button
+                                aria-controls="mobile-header-menu"
+                                aria-expanded={isMobileMenuOpen}
+                                aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white transition hover:bg-white/20"
+                                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                                type="button"
+                            >
+                                <svg
+                                    aria-hidden="true"
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    viewBox="0 0 24 24"
+                                >
+                                    {isMobileMenuOpen ? (
+                                        <path d="M6 6l12 12M18 6L6 18" />
+                                    ) : (
+                                        <path d="M4 7h16M4 12h16M4 17h16" />
+                                    )}
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-out lg:hidden ${
+                            isMobileSearchOpen ? "max-h-[120px] pb-3 opacity-100" : "max-h-0 opacity-0"
+                        }`}
+                        id="mobile-search-panel"
+                    >
+                        {renderSearchForm("mobile-site-search", "mt-2")}
                     </div>
 
                     <div
@@ -157,34 +485,20 @@ const Header = () => {
                         id="mobile-header-menu"
                     >
                         <div className="space-y-3 rounded-2xl border border-white/20 bg-white/5 p-3">
-                            {renderSearchForm("mobile-site-search")}
-
-                            <nav className="grid grid-cols-2 gap-2 text-sm font-semibold sm:grid-cols-4">
+                            <nav className="space-y-1 text-sm font-semibold">
                                 {navLinks.map((link) => (
                                     <Link
                                         key={link.to}
-                                        className="rounded-xl border border-white/20 px-3 py-2 text-center text-white/90 transition-colors hover:bg-white/15 hover:text-white"
+                                        className="flex items-center justify-between rounded-xl border border-white/20 px-4 py-3 text-white/90 transition-colors hover:bg-white/15 hover:text-white"
                                         to={link.to}
                                     >
-                                        {link.label}
+                                        <span>{link.label}</span>
+                                        <span aria-hidden="true">&gt;</span>
                                     </Link>
                                 ))}
                             </nav>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <Link
-                                    className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-4 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#e5f3ef]"
-                                    to="/login"
-                                >
-                                    Log in
-                                </Link>
-                                <Link
-                                    className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border border-white bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#047857]"
-                                    to="/signup"
-                                >
-                                    Sign up
-                                </Link>
-                            </div>
+                            {renderMobileAuthActions()}
                         </div>
                     </div>
                 </div>

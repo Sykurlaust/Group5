@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 260" role="img" aria-labelledby="gcLogoNavbarTitle gcLogoNavbarDesc">
-  <title id="gcLogoNavbarTitle">GC Rentals navbar logo</title>
-  <desc id="gcLogoNavbarDesc">Compact blue house icon with serif GC Rentals wordmark for navigation bars.</desc>
+  <title id="gcLogoNavbarTitle">GC Renting navbar logo</title>
+  <desc id="gcLogoNavbarDesc">Compact blue house icon with serif GC Renting wordmark for navigation bars.</desc>
   <defs>
     <linearGradient id="gcNavRoof" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#7EE7FF"/>
@@ -37,6 +37,6 @@
   </g>
 
   <text x="382" y="170" fill="#FFFFFF" font-family="Georgia, 'Times New Roman', serif" font-size="90" font-weight="700" letter-spacing="0.2">
-    GC Rentals
+    GC Renting
   </text>
 </svg>

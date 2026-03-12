@@ -1,20 +1,51 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { db } from '../lib/firebase'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 
 const Contact = () => {
+	const [searchParams] = useSearchParams()
+	const requestedSubject = searchParams.get('subject')
+	const initialSubject = requestedSubject === 'general' || requestedSubject === 'rental' || requestedSubject === 'support' || requestedSubject === 'other'
+		? requestedSubject
+		: 'general'
+
 	const [formData, setFormData] = useState({
 		firstName: '',
 		lastName: '',
 		email: '',
 		phone: '',
-		subject: 'general',
+		subject: initialSubject,
 		message: ''
 	})
+	const [submitting, setSubmitting] = useState(false)
+	const [success, setSuccess] = useState(false)
+	const [submitError, setSubmitError] = useState<string | null>(null)
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-		console.log('Form submitted:', formData)
+		setSubmitting(true)
+		setSubmitError(null)
+		try {
+			await addDoc(collection(db, 'contacts'), {
+				firstName: formData.firstName.trim(),
+				lastName: formData.lastName.trim(),
+				email: formData.email.trim().toLowerCase(),
+				phone: formData.phone.trim(),
+				subject: formData.subject,
+				message: formData.message.trim(),
+				read: false,
+				createdAt: serverTimestamp(),
+			})
+			setSuccess(true)
+			setFormData({ firstName: '', lastName: '', email: '', phone: '', subject: initialSubject, message: '' })
+		} catch {
+			setSubmitError('Could not send your message. Please try again.')
+		} finally {
+			setSubmitting(false)
+		}
 	}
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -45,7 +76,7 @@ const Contact = () => {
 									<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
 									</svg>
-									<span>+1012 3456 789</span>
+									<span>+34 928 123 456</span>
 								</div>
 
 
@@ -53,7 +84,7 @@ const Contact = () => {
 									<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
 									</svg>
-									<span>demo@gmail.com</span>
+									<span>info@gc-renting.com</span>
 								</div>
 
 
@@ -67,17 +98,7 @@ const Contact = () => {
 							</div>
 
 
-							<div className="flex gap-4 pt-12">
-								<button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/30">
-									<span className="text-sm font-semibold">IG</span>
-								</button>
-								<button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/30">
-									<span className="text-sm font-semibold">FB</span>
-								</button>
-								<button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/30">
-									<span className="text-sm font-semibold">YT</span>
-								</button>
-							</div>
+
 						</div>
 
 
@@ -228,11 +249,18 @@ const Contact = () => {
 							<div className="flex justify-end pt-4">
 								<button
 									type="submit"
-									className="rounded-full bg-[#047857] px-8 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#036c50]"
+									disabled={submitting}
+									className="rounded-full bg-[#047857] px-8 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#036c50] disabled:opacity-60"
 								>
-									Send Message
+									{submitting ? 'Sending...' : 'Send Message'}
 								</button>
 							</div>
+							{success && (
+								<p className="text-sm font-semibold text-[#047857] text-right">✓ Message sent! We'll be in touch soon.</p>
+							)}
+							{submitError && (
+								<p className="text-sm font-semibold text-red-600 text-right">{submitError}</p>
+							)}
 						</form>
 					</div>
 				</div>
