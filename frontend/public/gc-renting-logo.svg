@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <g fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Roof -->
+    <path d="M96 250 L256 120 L416 250"></path>
+
+    <!-- House sides -->
+    <path d="M150 250 L150 350"></path>
+    <path d="M362 250 L362 350"></path>
+
+    <!-- Bottom V base -->
+    <path d="M150 350 L256 310 L362 350"></path>
+
+  </g>
+
+  <!-- Window (2 filled panes separated) -->
+  <rect x="212" y="215" width="36" height="36" fill="#FFFFFF"></rect>
+  <rect x="274" y="215" width="36" height="36" fill="#FFFFFF"></rect>
+
+</svg>

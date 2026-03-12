@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" role="img" aria-labelledby="gcLogoWhiteTitle gcLogoWhiteDesc">
-  <title id="gcLogoWhiteTitle">GC Rentals white logo</title>
+  <title id="gcLogoWhiteTitle">GC Renting white logo</title>
   <desc id="gcLogoWhiteDesc">Monochrome white logo for dark backgrounds.</desc>
 
   <g transform="translate(34 16)" fill="#FFFFFF">
@@ -28,6 +28,6 @@
   </g>
 
   <text x="520" y="230" fill="#FFFFFF" font-family="Georgia, 'Times New Roman', serif" font-size="116" font-weight="600" letter-spacing="0.5">
-    GC Rentals
+    GC Renting
   </text>
 </svg>
