@@ -98,17 +98,7 @@ const Contact = () => {
 							</div>
 
 
-							<div className="flex gap-4 pt-12">
-								<button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/30">
-									<span className="text-sm font-semibold">IG</span>
-								</button>
-								<button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/30">
-									<span className="text-sm font-semibold">FB</span>
-								</button>
-								<button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/30">
-									<span className="text-sm font-semibold">YT</span>
-								</button>
-							</div>
+
 						</div>
 
 
