@@ -124,25 +124,21 @@ const AboutUs: React.FC = () => {
 					<p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
 						Dedicated professionals committed to helping you find your perfect home
 					</p>
-					<div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+					<div className="mx-auto mt-12 flex h-auto w-full max-w-6xl flex-col gap-4 md:h-[320px] md:flex-row">
 						{teamMembers.map((member, index) => (
 							<div
 								key={index}
-								className="text-center group"
+								className="group relative min-w-0 h-[240px] flex-[1] overflow-hidden rounded-2xl transition-all duration-500 ease-in-out md:h-full md:min-w-[180px] md:hover:flex-[1.7]"
 							>
-								<div className="rounded-[30px] overflow-hidden mb-4 shadow-md group-hover:shadow-lg transition-shadow">
-									<img
-										src={member.image}
-										alt=""
-										className="w-full h-64 object-cover"
-									/>
+								<img
+									src={member.image}
+									alt={member.name}
+									className="w-full h-full object-cover object-[center_20%]"
+								/>
+								<div className="absolute bottom-0 left-0 right-0 bg-black/50 py-3 text-center text-white opacity-100 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100">
+									<p className="font-semibold">{member.name}</p>
+									<p className="text-sm">{member.role}</p>
 								</div>
-								<h3 className="text-xl font-semibold text-gray-900">
-									{member.name}
-								</h3>
-								<p className="text-gray-600 text-sm mt-1">
-									{member.role}
-								</p>
 							</div>
 						))}
 					</div>
