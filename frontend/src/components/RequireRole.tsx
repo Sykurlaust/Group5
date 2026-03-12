@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom"
 import type { ReactNode } from "react"
-import { useAuth, type UserRole } from "../context/AuthContext"
+import { resolveUserRole, useAuth, type UserRole } from "../context/AuthContext"
 
 type RequireRoleProps = {
   allowedRoles: UserRole[]
@@ -9,7 +9,7 @@ type RequireRoleProps = {
 }
 
 const RequireRole = ({ allowedRoles, children, redirectTo = "/account" }: RequireRoleProps) => {
-  const { loading, profile } = useAuth()
+  const { loading, profile, firebaseUser } = useAuth()
 
   if (loading && !profile) {
     return (
@@ -19,7 +19,10 @@ const RequireRole = ({ allowedRoles, children, redirectTo = "/account" }: Requir
     )
   }
 
-  const currentRole: UserRole = profile?.role ?? "guest"
+  const currentRole: UserRole = resolveUserRole(
+    profile?.email ?? firebaseUser?.email ?? "",
+    profile?.role,
+  )
 
   if (!allowedRoles.includes(currentRole)) {
     return <Navigate replace to={redirectTo} />

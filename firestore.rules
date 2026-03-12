@@ -51,6 +51,20 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
+    match /analytics_page_views_daily/{dayId} {
+      allow create, update: if true;
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      allow delete: if false;
+    }
+
+    match /analytics_route_views/{routeId} {
+      allow create, update: if true;
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      allow delete: if false;
+    }
+
     match /conversations/{conversationId} {
       allow read: if request.auth != null
         && request.auth.uid in resource.data.participants;

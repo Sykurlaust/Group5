@@ -1,6 +1,6 @@
 import type { Response } from "express"
 import type { AuthenticatedRequest } from "../middlewares/authenticate.js"
-import { findUserByUid, createUser, updateUser } from "../services/auth.service.js"
+import { ensureForcedAdminRole, findUserByUid, createUser, updateUser } from "../services/auth.service.js"
 
 export const register = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -11,6 +11,7 @@ export const register = async (req: AuthenticatedRequest, res: Response): Promis
 
     const existing = await findUserByUid(req.user.uid)
     if (existing) {
+      await ensureForcedAdminRole(req.user.uid, req.user.email)
       res.status(409).json({ error: "User already registered" })
       return
     }
@@ -37,7 +38,7 @@ export const getMe = async (req: AuthenticatedRequest, res: Response): Promise<v
       return
     }
 
-    const user = await findUserByUid(req.user.uid)
+    const user = await ensureForcedAdminRole(req.user.uid, req.user.email)
     if (!user) {
       res.status(404).json({ error: "User profile not found" })
       return
