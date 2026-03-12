@@ -28,8 +28,35 @@ const MessagesPage = () => {
   const [sendError, setSendError] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [conversationsError, setConversationsError] = useState("")
+  const [realtimeReady, setRealtimeReady] = useState(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return false
+    }
+    return window.navigator.onLine && document.visibilityState === "visible"
+  })
   const hasInitializedUpdatesRef = useRef(false)
   const lastConversationActivityRef = useRef<Record<string, number>>({})
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return
+    }
+
+    const syncRealtimeReadiness = () => {
+      setRealtimeReady(window.navigator.onLine && document.visibilityState === "visible")
+    }
+
+    syncRealtimeReadiness()
+    window.addEventListener("online", syncRealtimeReadiness)
+    window.addEventListener("offline", syncRealtimeReadiness)
+    document.addEventListener("visibilitychange", syncRealtimeReadiness)
+
+    return () => {
+      window.removeEventListener("online", syncRealtimeReadiness)
+      window.removeEventListener("offline", syncRealtimeReadiness)
+      document.removeEventListener("visibilitychange", syncRealtimeReadiness)
+    }
+  }, [])
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 1023px)")
@@ -50,7 +77,7 @@ const MessagesPage = () => {
   }, [activeConversationId])
 
   useEffect(() => {
-    if (!firebaseUser) {
+    if (!firebaseUser || !realtimeReady) {
       setLoadingConversations(false)
       return
     }
@@ -90,7 +117,7 @@ const MessagesPage = () => {
     )
 
     return () => unsubscribe()
-  }, [firebaseUser])
+  }, [firebaseUser, realtimeReady])
 
   useEffect(() => {
     if (!conversations.length) {
@@ -126,7 +153,7 @@ const MessagesPage = () => {
   }, [conversationFromQuery, conversations, isMobileLayout])
 
   useEffect(() => {
-    if (!activeConversationId) {
+    if (!activeConversationId || !realtimeReady) {
       setMessages([])
       return
     }
@@ -154,7 +181,7 @@ const MessagesPage = () => {
     }
 
     return () => unsubscribe()
-  }, [activeConversationId, firebaseUser])
+  }, [activeConversationId, firebaseUser, realtimeReady])
 
   useEffect(() => {
     if (!activeConversationId || !conversationFromQuery) {

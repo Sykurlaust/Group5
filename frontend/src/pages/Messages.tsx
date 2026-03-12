@@ -89,6 +89,11 @@ const Messages = () => {
           }
           return nextListings[0]?.id ?? ""
         })
+      } catch (error) {
+        console.error("Firestore request failed while loading seller listings:", error)
+        setListings([])
+        setSelectedListingId("")
+        setNotice("Could not load seller listings right now.")
       } finally {
         setLoading(false)
       }
