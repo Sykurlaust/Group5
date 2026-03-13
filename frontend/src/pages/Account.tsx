@@ -16,7 +16,6 @@ const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 const MAX_PROFILE_IMAGE_DIMENSION = 640
 const MAX_PROFILE_IMAGE_DATA_URL_CHARS = 700_000
-const API_BASE_URL = getApiBaseUrl()
 
 
 const Account = () => {
@@ -178,8 +177,10 @@ const Account = () => {
 
       setSavePhase("saving")
 
+      const apiBaseUrl = getApiBaseUrl()
+
       const response = await withTimeout(
-        fetch(`${API_BASE_URL}/auth/me`, {
+        fetch(`${apiBaseUrl}/auth/me`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
